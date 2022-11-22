@@ -14,6 +14,23 @@ const struct option long_opts[] = {
     {"help", no_argument, 0, 'h'},
     {0, 0, 0, 0}};
 
+struct result {
+    std::string message;
+    int execution_time;
+    int consumed_memory;
+};
+
+std::ostream& operator << (std::ostream& out, const result& res) {
+    out << "{ message: " 
+        << res.message 
+        << ", execution_time: " 
+        << res.execution_time 
+        << ", consumed_memory: " 
+        << res.consumed_memory 
+        << "}";
+    return out;
+}
+
 int main(int argc, char **argv)
 {
     int memory;
