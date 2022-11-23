@@ -4,6 +4,21 @@
 
 void print_usage(const std::string appname);
 
+enum RESULT {
+    SUCCESS = 0,
+    FAIL
+};
+
+const std::string ResultMessage[] = {
+    "success",
+    "fail"
+};
+
+std::string to_string(const RESULT& r) {
+    return ResultMessage[r]; 
+}
+
+
 const char *short_opts = "a:i:o:h";
 const struct option long_opts[] = {
     {"app", required_argument, 0, 'a'},
