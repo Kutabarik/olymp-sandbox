@@ -1,14 +1,14 @@
 CC=g++
 CFLAGS=-c
-LDFLAGS=
-SOURCES=main.cpp
+LDFLAGS=-pthread
+SOURCES=olymp-sandbox.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=main
+EXECUTABLE=olymp-sandbox
 
 all: $(SOURCES) $(EXECUTABLE)
-	
-$(EXECUTABLE): $(OBJECTS) 
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+
+$(EXECUTABLE): $(OBJECTS)
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $@ 
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $@

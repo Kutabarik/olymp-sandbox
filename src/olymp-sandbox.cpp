@@ -1,8 +1,11 @@
+
 #include <getopt.h>
 #include <iostream>
 #include <string>
+#include <thread>
 
 void print_usage(const std::string appname);
+void start_app (std::string application, int memory, double time);
 
 const char *short_opts = "a:i:o:h";
 const struct option long_opts[] = {
@@ -25,6 +28,9 @@ int main(int argc, char **argv)
     int result;
     int option_index;
 
+    if (argc == 1) 
+            print_usage(argv[0]);
+
     while ((result = getopt_long(argc, argv, short_opts, long_opts, &option_index)) != -1)
     {
         switch (result)
@@ -35,31 +41,37 @@ int main(int argc, char **argv)
             break;
         case 'a':
             application = optarg;
-            std::cout << application << std::endl;
             break;
         case 'm':
             memory = atoi(optarg);
-            std::cout << memory << std::endl;
             break;
         case 't':
             time = atoi(optarg);
-            std::cout << time << std::endl;
             break;
         case 'i':
             input = optarg;
-            std::cout << input << std::endl;
             break;
         case 'o':
             output = optarg;
-            std::cout << output << std::endl;
             break;
-        default:
-            break;
-        }
+        default: 
+	    break;
+	    }
     }
 
+    std::thread th(start_app, application, memory, time);
+
+    std::cout << "Main programm" << std::endl;
+
+    th.join();
     return 0;
 }
+
+void start_app (std::string application, int memory, double time)
+{
+    system(application.c_str());
+}
+
 
 void print_usage(const std::string appname)
 {
