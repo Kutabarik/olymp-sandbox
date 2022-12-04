@@ -3,6 +3,7 @@
 
 #include <getopt.h>
 #include <string>
+#include <thread>
 
 /**
  * @brief constants

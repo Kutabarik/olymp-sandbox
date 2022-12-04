@@ -1,9 +1,9 @@
 CC=g++
 CFLAGS=-c
-LDFLAGS=
-SOURCES=constants.cpp functions.cpp main.cpp
+LDFLAGS=-pthread
+SOURCES=constants.cpp functions.cpp olymp-sandbox.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
-EXECUTABLE=main
+EXECUTABLE=olymp-sandbox
 
 all: $(SOURCES) $(EXECUTABLE)
 	
