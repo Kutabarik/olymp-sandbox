@@ -1,7 +1,7 @@
 CC=g++
 CFLAGS=-c
 LDFLAGS=
-SOURCES=main.cpp
+SOURCES=constants.cpp functions.cpp main.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=main
 

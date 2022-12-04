@@ -2,17 +2,7 @@
 #include <iostream>
 #include <string>
 
-void print_usage(const std::string appname);
-
-const char *short_opts = "a:i:o:h";
-const struct option long_opts[] = {
-    {"app", required_argument, 0, 'a'},
-    {"memory", required_argument, 0, 'm'},
-    {"time", required_argument, 0, 't'},
-    {"input", required_argument, 0, 'i'},
-    {"output", required_argument, 0, 'o'},
-    {"help", no_argument, 0, 'h'},
-    {0, 0, 0, 0}};
+#include "definitions.h"
 
 int main(int argc, char **argv)
 {
@@ -59,12 +49,4 @@ int main(int argc, char **argv)
     }
 
     return 0;
-}
-
-void print_usage(const std::string appname)
-{
-    std::cout << "Usage:" << std::endl;
-    std::cout << "\t" << appname << " --help | -h" << std::endl;
-    std::cout << "\t" << appname << " -a <app> -t <time> -m <memory> -i <in.file> -o <outfile>" << std::endl;
-    std::cout << "\t" << appname << " --app=<app> --time=<time> --memory=<memory> --input=<in.file> --output=<outfile>" << std::endl;
 }
