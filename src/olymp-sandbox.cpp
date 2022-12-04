@@ -4,6 +4,7 @@
 #include <string>
 #include <thread>
 
+<<<<<<< HEAD:src/olymp-sandbox.cpp
 void print_usage(const std::string appname);
 void start_app (std::string application, int memory, double time);
 
@@ -16,6 +17,9 @@ const struct option long_opts[] = {
     {"output", required_argument, 0, 'o'},
     {"help", no_argument, 0, 'h'},
     {0, 0, 0, 0}};
+=======
+#include "definitions.h"
+>>>>>>> 765bc5b213825c7fd178aaba8cf7bd034820eff4:src/main.cpp
 
 int main(int argc, char **argv)
 {
@@ -66,6 +70,7 @@ int main(int argc, char **argv)
     th.join();
     return 0;
 }
+<<<<<<< HEAD:src/olymp-sandbox.cpp
 
 void start_app (std::string application, int memory, double time)
 {
@@ -80,3 +85,5 @@ void print_usage(const std::string appname)
     std::cout << "\t" << appname << " -a <app> -t <time> -m <memory> -i <in.file> -o <outfile>" << std::endl;
     std::cout << "\t" << appname << " --app=<app> --time=<time> --memory=<memory> --input=<in.file> --output=<outfile>" << std::endl;
 }
+=======
+>>>>>>> 765bc5b213825c7fd178aaba8cf7bd034820eff4:src/main.cpp
