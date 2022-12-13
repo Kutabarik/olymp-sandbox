@@ -14,6 +14,9 @@ int main(int argc, char **argv)
 
     int result;
     int option_index;
+    
+    if (argc == 1) 
+            print_usage(argv[0]);
 
     while ((result = getopt_long(argc, argv, short_opts, long_opts, &option_index)) != -1)
     {
