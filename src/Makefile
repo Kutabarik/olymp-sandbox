@@ -4,6 +4,8 @@ LDFLAGS=-pthread
 SOURCES=constants.cpp functions.cpp olymp-sandbox.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 EXECUTABLE=olymp-sandbox
+BINDIR=../bin/
+TESTFILESDIR=../testfiles/
 
 all: $(SOURCES) $(EXECUTABLE)
 	
@@ -17,5 +19,5 @@ clean:
 	rm -rf *.o $(EXECUTABLE)
 
 test:
-	./$(EXECUTABLE) -h
-
+	$(CC) test.cpp -o $(BINDIR)/testapp
+	$(BINDIR)/testapp < $(TESTFILESDIR)/input01.txt
