@@ -42,3 +42,40 @@ void PerformLongOperation ()
 ```
 
 **qwTotalTimeElapsed** - время, выраженное в интервалах по 100 нс.
+
+=================================================================
+```c++
+#include <iostream>
+#include <chrono>
+#include <cstdlib>
+#include <unistd.h>
+
+int main()
+{
+    // Start the timer
+    auto start = std::chrono::high_resolution_clock::now();
+
+    // Run the "app" program in a stream
+    int result = system("app");
+
+    // Check the return value of the "app" program
+    if (result != 0)
+    {
+        std::cerr << "Error running app" << std::endl;
+        return 1;
+    }
+
+    // Stop the timer
+    auto stop = std::chrono::high_resolution_clock::now();
+
+    // Calculate the elapsed time in milliseconds
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+
+    // Print the elapsed time
+    std::cout << "Elapsed time: " << elapsed << " milliseconds" << std::endl;
+
+    return 0;
+}
+```
+
+This code uses the system function to run the "app" program in a stream. It then checks the return value of the system function to make sure the "app" program ran successfully. If there was an error, it prints an error message and returns an error code. If the "app" program ran successfully, it calculates the elapsed time using the chrono library and prints the result.
