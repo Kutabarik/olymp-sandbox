@@ -43,7 +43,7 @@ void PerformLongOperation ()
 
 **qwTotalTimeElapsed** - время, выраженное в интервалах по 100 нс.
 
-=================================================================
+# Использование chrono
 ```c++
 #include <iostream>
 #include <chrono>
