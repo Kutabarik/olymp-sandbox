@@ -13,6 +13,18 @@ void print_usage(const std::string appname)
     std::cout << "\t" << appname << " --app=<app> --time=<time> --memory=<memory> --input=<in.file> --output=<outfile>" << std::endl;
 }
 
+void print_status(STATUS_TYPE status)
+{
+    const std::string message[] = {
+        "success",
+        "fail",
+        "time limit",
+        "memory limit",
+        "execution failed",
+    };
+    std::cout << message[status] << std::endl;
+}
+
 void run_task(std::string application, std::string input, std::string output)
 {
     std::cout << "execute application:" << std::endl;
