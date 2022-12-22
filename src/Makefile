@@ -3,7 +3,7 @@ CFLAGS=-c
 LDFLAGS=-pthread
 SOURCES=constants.cpp functions.cpp olymp-sandbox.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
-BINOBJ=$(BINDIR)$(SOURCES:.cpp=.o)
+BINOBJ=$(BINDIR)constants.o $(BINDIR)functions.o $(BINDIR)olymp-sandbox.o
 EXECUTABLE=olymp-sandbox
 BINDIR=../bin/
 TESTFILESDIR=../testfiles/
@@ -11,7 +11,7 @@ TESTFILESDIR=../testfiles/
 all: $(SOURCES) $(EXECUTABLE)
 	
 $(EXECUTABLE): $(OBJECTS) 
-	$(CC) $(LDFLAGS) $(BINOBJ) -o $(BINDIR)$@
+	$(CC) $(LDFLAGS) $(BINOBJ) -o$@
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $(BINDIR)$@
