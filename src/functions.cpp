@@ -22,7 +22,7 @@ void print_status(STATUS_TYPE status)
         "memory limit",
         "execution failed",
     };
-    std::cout << message[status] << std::endl;
+    std::cout << message[(int)status] << std::endl;
 }
 
 void run_task(std::string application, std::string input, std::string output)

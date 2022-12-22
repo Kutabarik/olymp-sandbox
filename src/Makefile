@@ -11,7 +11,7 @@ TESTFILESDIR=../testfiles/
 all: $(SOURCES) $(EXECUTABLE)
 	
 $(EXECUTABLE): $(OBJECTS) 
-	$(CC) $(LDFLAGS) $(BINOBJ) -o$@
+	$(CC) $(LDFLAGS) $(BINOBJ) -o $(BINDIR)$@
 
 .cpp.o:
 	$(CC) $(CFLAGS) $< -o $(BINDIR)$@
