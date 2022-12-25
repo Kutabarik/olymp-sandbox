@@ -19,14 +19,14 @@ enum class STATUS_TYPE
     TIME_LIMIT,
     MEMORY_LIMIT,
     EXECUTION_FAILED
-}
+};
+
 /**
  * @brief functions
  *
  */
 
-void
-print_usage(const std::string appname);
+void print_usage(const std::string appname);
 void run_task(std::string application, std::string input, std::string output);
 void print_status(STATUS_TYPE status);
 
