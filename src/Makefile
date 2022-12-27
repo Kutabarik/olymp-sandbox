@@ -22,3 +22,7 @@ clean:
 test:
 	$(CC) test.cpp -o $(BINDIR)/testapp
 	$(BINDIR)/testapp < $(TESTFILESDIR)/input01.txt
+	$(BINDIR)/testapp < $(TESTFILESDIR)/input02.txt
+	$(BINDIR)/testapp < $(TESTFILESDIR)/input03.txt
+	$(BINDIR)/testapp < $(TESTFILESDIR)/input04.txt
+	$(BINDIR)/testapp < $(TESTFILESDIR)/input05.txt
