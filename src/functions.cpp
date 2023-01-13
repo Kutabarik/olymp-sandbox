@@ -29,4 +29,19 @@ void run_task(std::string application, std::string input, std::string output)
 {
     std::cout << "execute application:" << std::endl;
     std::cout << application << " input: " << input << " output: " << output << std::endl;
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    int result = system(application.c_str());
+
+    if (result != 0)
+    {
+        std::cerr << "Error running app" << std::endl;
+    }
+
+    auto stop = std::chrono::high_resolution_clock::now();
+
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+
+    std::cout << "Elapsed time: " << elapsed << " milliseconds" << std::endl;
 }
