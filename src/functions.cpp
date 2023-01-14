@@ -13,7 +13,7 @@ void print_usage(const std::string appname)
     std::cout << "\t" << appname << " --app=<app> --time=<time> --memory=<memory> --input=<in.file> --output=<outfile>" << std::endl;
 }
 
-void print_status(STATUS_TYPE status, int memory, double time)
+void print_status(STATUS_TYPE status, double time, int memory)
 {
     // const std::string message[] = {
     //     "success",
