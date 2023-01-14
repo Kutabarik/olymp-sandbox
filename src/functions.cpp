@@ -27,8 +27,8 @@ void print_status(STATUS_TYPE status)
 
 void run_task(std::string application, std::string input, std::string output)
 {
-    std::cout << "execute application:" << std::endl;
-    std::cout << application << " input: " << input << " output: " << output << std::endl;
+    std::cout << "execute application:" << application << std::endl;
+    std::cout << " input: " << input << " output: " << output << std::endl;
 
     auto start = std::chrono::high_resolution_clock::now();
 
