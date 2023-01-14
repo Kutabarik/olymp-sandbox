@@ -17,7 +17,7 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) $< -o $(BINDIR)$@
 
 clean:
-	rm -rf $(BINDIR)*.o $(EXECUTABLE)
+	rm -rf $(BINDIR)*.o $(BINDIR)*.exe $(EXECUTABLE)
 
 test:
 	$(CC) test.cpp -o $(BINDIR)/testapp
