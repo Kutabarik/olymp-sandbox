@@ -15,38 +15,15 @@ void print_usage(const std::string appname)
 
 void print_status(STATUS_TYPE status, double time, int memory)
 {
-    // const std::string message[] = {
-    //     "success",
-    //     "fail",
-    //     "time limit",
-    //     "memory limit",
-    //     "execution failed",
-    // };
-    // std::cout << message[(int)status] << std::endl;
+    const std::string message[] = {
+        "success",
+        "fail",
+        "time limit",
+        "memory limit",
+        "execution failed",
+    };
 
-    std::string message;
-
-    switch ((int)status)
-    {
-    case 0:
-        message = "success";
-        break;
-    case 1:
-        message = "fail";
-        break;
-    case 2:
-        message = "time limit";
-        break;
-    case 3:
-        message = "memory limit";
-        break;
-    case 4:
-        message = "execution failed";
-        break;
-    default:
-        message = "Invalid input.";
-    }
-    std::cout << "{\"status\":\"" << message << "\",\"time\":" << time << ",\"memory\":" << memory << "}" << std::endl;
+    std::cout << "{\"status\":\"" << message[(int)status] << "\",\"time\":" << time << ",\"memory\":" << memory << "}" << std::endl;
 }
 
 void run_task(std::string application, std::string input, std::string output)
