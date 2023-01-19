@@ -1,0 +1,32 @@
+#!/bin/bash
+
+file=$1
+extension="${file##*.}"
+
+case $extension in
+    "c")
+        gcc $file -o ${file%.*}
+        ;;
+    "cpp")
+        g++ $file -o ${file%.*}
+        ;;
+    "java")
+        javac $file
+        ;;
+    "py")
+        python $file 
+        ;;
+    "js")
+        node $file
+        ;;
+    "php")
+        php $file
+        ;;
+    "ts")
+        tsc $file
+        ;;
+    *)
+        echo "Unknown file extension"
+        exit 1
+        ;;
+esac
