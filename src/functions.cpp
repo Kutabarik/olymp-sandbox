@@ -13,7 +13,7 @@ void print_usage(const std::string appname)
     std::cout << "\t" << appname << " --app=<app> --time=<time> --memory=<memory> --input=<in.file> --output=<outfile>" << std::endl;
 }
 
-void print_status(STATUS_TYPE status)
+void print_status(STATUS_TYPE status, double time, int memory)
 {
     const std::string message[] = {
         "success",
@@ -22,7 +22,8 @@ void print_status(STATUS_TYPE status)
         "memory limit",
         "execution failed",
     };
-    std::cout << message[(int)status] << std::endl;
+
+    std::cout << "{\"status\":\"" << message[(int)status] << "\",\"time\":" << time << ",\"memory\":" << memory << "}" << std::endl;
 }
 
 void run_task(std::string application, std::string input, std::string output)

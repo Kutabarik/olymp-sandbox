@@ -28,6 +28,6 @@ enum class STATUS_TYPE
 
 void print_usage(const std::string appname);
 void run_task(std::string application, std::string input, std::string output);
-void print_status(STATUS_TYPE status);
+void print_status(STATUS_TYPE status, double time, int memory);
 
 #endif /* _DEFINITIONS_H_ */
