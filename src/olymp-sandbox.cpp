@@ -49,7 +49,7 @@ int main(int argc, char **argv)
         }
     }
 
-    std::thread th(run_task, application, input, output);
+    std::thread th(run_task, application, input, output, time, memory);
 
     th.join();
 
