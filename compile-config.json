@@ -8,16 +8,16 @@
 		"compiler": "/usr/bin/gcc", 
 		"binary": "solution"
 	}, 
-    {
-        "language": "C++x17",
-        "extension": "cpp",
-        "source": "solution.cpp",
-        "compile": "${compiler} ${source} -O2 -std=c++17 -o ${binary}",
-        "run": "${binary}",
-        "compiler": "/usr/bin/g++",
-        "binary": "solution",
-        "version": "${compiler} -v"
-    },
+	{
+		"language": "C++x17",
+		"extension": "cpp",
+		"source": "solution.cpp",
+		"compile": "${compiler} ${source} -O2 -std=c++17 -o ${binary}",
+		"run": "${binary}",
+		"compiler": "/usr/bin/g++",
+		"binary": "solution",
+		"version": "${compiler} -v"
+	},
 	{
 		"language": "Java",
 		"extension": "java",
@@ -28,16 +28,16 @@
 		"interpreter": "/usr/bin/java",
 		"binary": "solution.class" 
 	}, 
-    {
-        "language": "Python 3.11",
-        "extension": "py",
-        "source": "solution.py",
-        "compile": "",
-        "run": "${interpreter} ${source}",
-        "interpreter": "/usr/bin/py",
-        "version": "${compiler} -V"
-    },
- 	{  			    	
+	{
+		"language": "Python 3.11",
+		"extension": "py",
+		"source": "solution.py",
+		"compile": "",
+		"run": "${interpreter} ${source}",
+		"interpreter": "/usr/bin/py",
+		"version": "${compiler} -V"
+	},
+	{  			    	
 		"language":"JS" ,  
 		"extension":"js" ,  
 		"source":"solution.js" ,
