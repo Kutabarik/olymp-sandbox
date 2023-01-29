@@ -1,0 +1,57 @@
+[
+	{ 
+		"language": "C", 
+		"extension": "c", 
+		"source": "solution.c", 
+		"compile": "${compiler} ${source} -o ${binary}", 
+		"run": "${binary}", 
+		"compiler": "/usr/bin/gcc", 
+		"binary": "solution"
+	}, 
+    {
+        "language": "C++x17",
+        "extension": "cpp",
+        "source": "solution.cpp",
+        "compile": "${compiler} ${source} -O2 -std=c++17 -o ${binary}",
+        "run": "${binary}",
+        "compiler": "/usr/bin/g++",
+        "binary": "solution",
+        "version": "${compiler} -v"
+    },
+	{
+		"language": "Java",
+		"extension": "java",
+		"source": "solution.java",
+		"compile": "${compiler} ${source} ",
+		"run": "${interpreter} ${binary}",
+		"compiler": "/usr/bin/javac",
+		"interpreter": "/usr/bin/java",
+		"binary": "solution.class" 
+	}, 
+    {
+        "language": "Python 3.11",
+        "extension": "py",
+        "source": "solution.py",
+        "compile": "",
+        "run": "${interpreter} ${source}",
+        "interpreter": "/usr/bin/py",
+        "version": "${compiler} -V"
+    },
+ 	{  			    	
+		"language":"JS" ,  
+		"extension":"js" ,  
+		"source":"solution.js" ,
+		"compile":"${interpreter} ${source}" ,
+		"run":"${interpreter} ${source}" ,
+		"interpreter":"/usr/bin/nodejs"  
+	},
+	{
+		"language": "PHP",
+		"extension": "php",
+		"source": "solution.php",
+		"compile": "",
+		"run": "${interpreter} ${source}",
+		"interpreter": "/usr/bin/php",
+		"version": "${interpreter} -v"
+	}
+]
