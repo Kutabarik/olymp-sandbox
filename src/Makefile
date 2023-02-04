@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c
+CFLAGS=-c -D_WIN32
 LDFLAGS=-pthread
 SOURCES=constants.cpp functions.cpp olymp-sandbox.cpp
 OBJECTS=$(SOURCES:.cpp=.o)

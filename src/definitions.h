@@ -1,6 +1,14 @@
 #ifndef _DEFINITIONS_H_
 #define _DEFINITIONS_H_
 
+#ifdef _WIN32
+    #define IS_WINDOWS
+#elif __linux__
+    #define IS_LINUX
+#else
+    #error unknown operating system
+#endif
+
 #include <getopt.h>
 #include <string>
 #include <thread>
@@ -21,6 +29,8 @@ enum class STATUS_TYPE
     EXECUTION_FAILED
 };
 
+typedef std::size_t pid_type;
+
 /**
  * @brief functions
  *
@@ -28,6 +38,9 @@ enum class STATUS_TYPE
 
 void print_usage(const std::string appname);
 void run_task(std::string application, std::string input, std::string output);
+pid_type get_pid(std::string app_name);
+int get_memory_usage(pid_type pid);
+int get_time_usage(pid_type pid);
 void print_status(STATUS_TYPE status);
 
 #endif /* _DEFINITIONS_H_ */

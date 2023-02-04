@@ -5,6 +5,20 @@
 
 #include "definitions.h"
 
+#ifdef IS_WINDOWS
+// window code
+// include windows headers
+#include <windows.h>
+#include <tlhelp32.h>
+#else
+// linux code
+// include linux headers
+#include "sys/types.h"
+#include "sys/sysinfo.h"
+#endif
+
+#include "definitions.h"
+
 void print_usage(const std::string appname)
 {
     std::cout << "Usage:" << std::endl;
@@ -40,9 +54,50 @@ void run_task(std::string application, std::string input, std::string output)
         std::cerr << "Error running app" << std::endl;
     }
 
+    std::size_t pid = get_pid(application);
+
     auto stop = std::chrono::high_resolution_clock::now();
 
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
 
     std::cout << "Elapsed time: " << elapsed << " milliseconds" << std::endl;
+}
+
+pid_type get_pid(std::string app_name)
+{
+    pid_type pid = 0;
+#ifdef IS_WINDOWS
+    // window code
+    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hSnapshot)
+    {
+        PROCESSENTRY32 pe32;
+        pe32.dwSize = sizeof(PROCESSENTRY32);
+        if (Process32First(hSnapshot, &pe32))
+        {
+            do
+            {
+                if (app_name == pe32.szExeFile)
+                {
+                    pid = pe32.th32ProcessID;
+                    break;
+                }
+            } while (Process32Next(hSnapshot, &pe32));
+        }
+        CloseHandle(hSnapshot);
+    }
+#else
+// linux code
+#endif
+    return pid;
+}
+
+int get_memory_usage(pid_type pid)
+{
+    return 0;
+}
+
+int get_time_usage(pid_type pid)
+{
+    return 0;
 }
