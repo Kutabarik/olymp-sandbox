@@ -10,6 +10,7 @@
 // include windows headers
 #include <windows.h>
 #include <tlhelp32.h>
+#include <psapi.h>
 #else
 // linux code
 // include linux headers
@@ -94,6 +95,14 @@ pid_type get_pid(std::string app_name)
 
 int get_memory_usage(pid_type pid)
 {
+#ifdef IS_WINDOWS
+    HANDLE h = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    GetProcessMemoryInfo(h, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
+    return pmc.PrivateUsage;
+#else
+// linux code
+#endif
     return 0;
 }
 
