@@ -1,28 +1,30 @@
 <?php
 
-$options = getopt("s:c:t:", array("solution:", "config:", "taskId:"));
+$options = getopt("s:c:t:u:", ["solution:", "config:", "taskId:", "userId:"]);
 
-$solution_file = $options["s"];
-$compiler_config = $options["c"];
-$task_id = $options["t"];
+$solution = $options['s'] ?? $options['solution'] ?? null;
+$compiler_config = $options['c'] ?? $options['config'] ?? null;
+$taskId = $options['t'] ?? $options['taskId'] ?? null;
+$userId = $options['u'] ?? $options['userId'] ?? null;
 
-if (empty($solution_file) || empty($compiler_config) || empty($task_id)) {
-  echo "Usage: script.php -s <solution_file> -c <compiler_config> -t <task_id>\n";
-  exit;
+if (!$solution || !$compiler_config || !$taskId || !$userId) {
+  echo "Usage: php script.php -s <solution> -c <config> -t <taskId> -u <userId>\n";
+  exit(1);
 }
+
+$solution_extension = pathinfo($solution, PATHINFO_EXTENSION);
 
 //defining a new name
-$solution_extension = pathinfo($solution_file, PATHINFO_EXTENSION);
-$new_name = 'solution.' . $solution_extension;
-$new_path = './solutions/' . $new_name;
+// $new_name = 'solution.' . $solution_extension;
+// $new_path = './solutions/' . $new_name;
 
 //create directory if not exist
-if (!file_exists('./solutions')) {
-  mkdir('./solutions');
-}
+// if (!file_exists('./solutions')) {
+//   mkdir('./solutions');
+// }
 
 //copy the file to the working directory
-copy($solution_file, $new_path);
+// copy($solution_file, $new_path);
 
 $config = file_get_contents($compiler_config);
 $config_decoded = json_decode($config, true);
