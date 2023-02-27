@@ -35,3 +35,10 @@ delete all bin files
 make clean 
 ```
 
+# cpp file usage
+```c++
+Usage:
+        \bin\olymp-sandbox.exe --help | -h
+        \bin\olymp-sandbox.exe -a <app> -t <time> -m <memory> -i <in.file> -o <outfile>
+        \bin\olymp-sandbox.exe --app=<app> --time=<time> --memory=<memory> --input=<in.file> --output=<outfile>
+```
