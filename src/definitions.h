@@ -14,8 +14,7 @@ extern const option long_opts[];
 
 enum class STATUS_TYPE
 {
-    SUCCESS = 0,
-    FAIL,
+    OK = 0,
     TIME_LIMIT,
     MEMORY_LIMIT,
     EXECUTION_FAILED
