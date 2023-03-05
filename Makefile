@@ -33,5 +33,9 @@ clean:
 	rm -rf $(BINDIR)/*.o $(BINDIR)/*.exe
 
 test:
-	$(CC) $(SRCDIR)/test.cpp -o $(BINDIR)/testapp
+	$(CC) $(SRCDIR)/test.cpp -o $(BINDIR)/testapp; \
 	$(BINDIR)/testapp < $(TESTFILESDIR)/input01.txt
+
+testos:
+	$(CC) $(SRCDIR)/testos.cpp -o $(BINDIR)/testos; \
+	$(BINDIR)/testos
