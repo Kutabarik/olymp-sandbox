@@ -5,20 +5,20 @@
 
 #include "definitions.h"
 
-#ifdef IS_WINDOWS
+#if defined(IS_WINDOWS)
 // window code
 // include windows headers
 #include <windows.h>
 #include <tlhelp32.h>
 #include <psapi.h>
 #else
+#if defined(IS_LINUX)
 // linux code
 // include linux headers
 #include "sys/types.h"
 #include "sys/sysinfo.h"
 #endif
-
-#include "definitions.h"
+#endif
 
 void print_usage(const std::string appname)
 {
@@ -67,7 +67,7 @@ void run_task(std::string application, std::string input, std::string output)
 pid_type get_pid(std::string app_name)
 {
     pid_type pid = 0;
-#ifdef IS_WINDOWS
+#if defined(IS_WINDOWS)
     // window code
     HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
     if (hSnapshot)
@@ -95,7 +95,7 @@ pid_type get_pid(std::string app_name)
 
 int get_memory_usage(pid_type pid)
 {
-#ifdef IS_WINDOWS
+#if defined(IS_WINDOWS)
     HANDLE h = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
     PROCESS_MEMORY_COUNTERS_EX pmc;
     GetProcessMemoryInfo(h, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));

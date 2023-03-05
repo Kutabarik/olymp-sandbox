@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -D_WIN32
+CFLAGS=-c
 LDFLAGS=-pthread
 
 # dirs
