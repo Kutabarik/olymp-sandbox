@@ -39,3 +39,6 @@ test:
 testos:
 	$(CC) $(SRCDIR)/testos.cpp -o $(BINDIR)/testos; \
 	$(BINDIR)/testos
+
+install: $(EXECUTABLE)
+	cp $(BINDIR)/$(EXECUTABLE) /usr/local/bin/$(EXECUTABLE)
