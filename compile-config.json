@@ -42,7 +42,7 @@
 		"language":"JS" ,  
 		"extension":"js" ,  
 		"source":"solution.js" ,
-		"compile":"${interpreter} ${source}" ,
+		"compile":"" ,
 		"run":"${interpreter} ${source}" ,
 		"interpreter":"/usr/bin/nodejs"  
 	},
