@@ -48,7 +48,9 @@ void run_task(std::string application, std::string input, std::string output)
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    int result = system(application.c_str());
+    std::string execution_line = application + " < " + input + " > " + output;
+
+    int result = system(execution_line.c_str());
 
     if (result != 0)
     {
