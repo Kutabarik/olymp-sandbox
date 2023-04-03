@@ -1,5 +1,7 @@
 <?php
 
+include_once __DIR__ . "config.php";
+
 use parallel\{Channel, Runtime};
 
 /**
@@ -52,19 +54,14 @@ class ThreadManager
 }
 
 /**
- * nr threads
- */
-$nrThreads = 4;
-
-/**
  * consumer task
  */
 $consumeTask = function (string $taskId) {
     $channel = Channel::open("data_channel");
     echo "run task #{$taskId}" . PHP_EOL;
     while (($data = $channel->recv()) != null) {
-        echo "[{$taskId}] consumer sleeps {$data} seconds" . PHP_EOL;
-        sleep($data);
+        echo "[{$taskId}] consumer read data " . json_encode($data) . PHP_EOL;
+        sleep($consumerTimeOut);
     }
     echo "consumer {$taskId} stops" . PHP_EOL;
 };
@@ -73,16 +70,24 @@ $consumeTask = function (string $taskId) {
  * produser task
  */
 $produceTask = function (int $nrConsumers) {
+    include_once __DIR__ . "db.php";
+
+    $db = new MySQLDB('localhost', 'username', 'password', 'database');
+    $db->connect();
+
     $reads = 0;
     $channel = Channel::open("data_channel");
     echo "run producer" . PHP_EOL;
     while ($reads++ < 50) {
-        $data = [random_int(1, 5), random_int(1, 5), random_int(1, 5), random_int(1, 5),];
+        //$data = [random_int(1, 5), random_int(1, 5), random_int(1, 5), random_int(1, 5),];
+        $data = getIdsByStatus(1);
         foreach ($data as $value) {
-            echo "[producer] simulate read data, readed {$value}" . PHP_EOL;
+            echo "[producer] send data" . json_encode($value) . " to channel" . PHP_EOL;
             $channel->send($value);
+            $db->updateSolutionStatus($value['id'], 2);
+            //копируем файл и переименовываем
         }
-        sleep(5);
+        sleep($producerTimeOut);
     }
     for ($i = 0; $i < $nrConsumers; ++$i) {
         $channel->send(null);
@@ -90,13 +95,22 @@ $produceTask = function (int $nrConsumers) {
     echo "producer stops" . PHP_EOL;
 };
 
-/**
- * channel for communication between producer and consumers
- */
-$channel = Channel::make("data_channel");
 
-ThreadManager::init($nrThreads, $produceTask, $consumeTask);
+// $config = file_get_contents($compiler_config);
+// $config_decoded = json_decode($config, true);
 
-ThreadManager::start();
+// //create string to compile file
+// foreach ($config_decoded as $item) {
+//   if ($item['extension'] === $solution_extension) {
+//     if (isset($item["compiler"])) {
+//       $compiler = $item["compiler"];
+//       $binary = $item["binary"];
+//       $source = $item["source"];
+//       $compile = str_replace("\${compiler}", $compiler, $item["compile"]);
+//       $compile = str_replace("\${source}", $source, $compile);
+//       $compile = str_replace("\${binary}", $binary, $compile);
 
-ThreadManager::finalize();
+//       print_r($compile);
+//     }
+//   }
+// }
