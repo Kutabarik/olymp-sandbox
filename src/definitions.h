@@ -4,11 +4,11 @@
 #if defined(_WIN32)
     #define IS_WINDOWS
 #else
-#if defined(__linux__) || defined(__unix__) || defined(__unix)
-    #define IS_LINUX
-#else
-    #error unknown operating system
-#endif
+    #if defined(__linux__) || defined(__unix__) || defined(__unix)
+        #define IS_LINUX
+    #else
+        #error unknown operating system
+    #endif
 #endif
 
 #include <getopt.h>

@@ -58,12 +58,13 @@ void run_task(std::string application, std::string input, std::string output)
     }
 
     std::size_t pid = get_pid(application);
+    std::size_t memoryUsed = get_memory_usage(pid);
 
     auto stop = std::chrono::high_resolution_clock::now();
 
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
 
-    std::cout << "Elapsed time: " << elapsed << " milliseconds" << std::endl;
+    std::cout << "Elapsed time: " << elapsed << " milliseconds, memory used = " << memoryUsed << std::endl;
 }
 
 pid_type get_pid(std::string app_name)
