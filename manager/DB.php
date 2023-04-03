@@ -27,7 +27,7 @@ class MySQLDB
 		}
 	}
 
-	public function changeSolutionStatus($id, $newStatus)
+	public function updateSolutionStatus($id, $newStatus)
 	{
 		try {
 			$sql = "UPDATE solutions SET status=:newStatus WHERE id=:id";
