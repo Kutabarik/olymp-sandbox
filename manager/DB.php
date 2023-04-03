@@ -27,7 +27,7 @@ class MySQLDB
 		}
 	}
 
-	public function changeStatus($id, $newStatus)
+	public function changeSolutionStatus($id, $newStatus)
 	{
 		try {
 			$sql = "UPDATE solutions SET status=:newStatus WHERE id=:id";
@@ -41,7 +41,7 @@ class MySQLDB
 		}
 	}
 
-	public function getStatus($id)
+	public function getSolutionStatus($id)
 	{
 		$stmt = $this->conn->prepare("SELECT status FROM solutions WHERE id = :id");
 		$stmt->bindParam(':id', $id);
@@ -50,6 +50,24 @@ class MySQLDB
 		return $status;
 	}
 
+	public function getIdsByStatus($status)
+	{
+		try {
+			$sql = "SELECT id FROM solutions WHERE status = :status";
+			$stmt = $this->conn->prepare($sql);
+			$stmt->bindParam(':status', $status);
+			$stmt->execute();
+			$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+			$ids = [];
+			foreach ($result as $row) {
+				$ids[] = $row['id'];
+			}
+			return $ids;
+		} catch (PDOException $e) {
+			echo "Error retrieving ids: " . $e->getMessage();
+			return [];
+		}
+	}
 
 	public function close()
 	{
@@ -60,5 +78,4 @@ class MySQLDB
 
 // $db = new MySQLDB("localhost", "username", "password", "mydb");
 // $db->connect();
-// $db->changeStatus(1, 3);
 // $db->close();
