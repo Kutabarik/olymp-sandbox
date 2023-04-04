@@ -15,8 +15,10 @@
 #if defined(IS_LINUX)
 // linux code
 // include linux headers
-#include "sys/types.h"
-#include "sys/sysinfo.h"
+#include <sys/types.h>
+#include <sys/sysinfo.h>
+#include <sys/wait.h>
+#include <sys/resource.h>
 #endif
 #endif
 
@@ -50,14 +52,9 @@ void run_task(std::string application, std::string input, std::string output)
 
     std::string execution_line = application + " < " + input + " > " + output;
 
-    int result = system(execution_line.c_str());
+    std::size_t pid = start_application(application);
 
-    if (result != 0)
-    {
-        std::cerr << "Error running app" << std::endl;
-    }
-
-    std::size_t pid = get_pid(application);
+    while()
     std::size_t memoryUsed = get_memory_usage(pid);
 
     auto stop = std::chrono::high_resolution_clock::now();
@@ -67,46 +64,78 @@ void run_task(std::string application, std::string input, std::string output)
     std::cout << "Elapsed time: " << elapsed << " milliseconds, memory used = " << memoryUsed << std::endl;
 }
 
-pid_type get_pid(std::string app_name)
+pid_type start_application(std::string app_name)
 {
     pid_type pid = 0;
 #if defined(IS_WINDOWS)
     // window code
-    HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (hSnapshot)
+        STARTUPINFO si;
+    PROCESS_INFORMATION pi;
+
+    ZeroMemory(&si, sizeof(si));
+    si.cb = sizeof(si);
+    ZeroMemory(&pi, sizeof(pi));
+
+    if (!CreateProcess(NULL,   // No module name (use command line)
+        (LPSTR)app_name.c_str(),   // Command line
+        NULL,   // Process handle not inheritable
+        NULL,   // Thread handle not inheritable
+        FALSE,  // Set handle inheritance to FALSE
+        0,      // No creation flags
+        NULL,   // Use parent's environment block
+        NULL,   // Use parent's starting directory 
+        &si,    // Pointer to STARTUPINFO structure
+        &pi)    // Pointer to PROCESS_INFORMATION structure
+        )
     {
-        PROCESSENTRY32 pe32;
-        pe32.dwSize = sizeof(PROCESSENTRY32);
-        if (Process32First(hSnapshot, &pe32))
-        {
-            do
-            {
-                if (app_name == pe32.szExeFile)
-                {
-                    pid = pe32.th32ProcessID;
-                    break;
-                }
-            } while (Process32Next(hSnapshot, &pe32));
-        }
-        CloseHandle(hSnapshot);
+        // cout << "Failed to create process: " << GetLastError() << endl;
+        return NULL;
     }
+
+    pid = pi.hProcess;
 #else
-// linux code
+    pid = fork();
+
+    if (pid == -1) {
+        // cout << "Failed to create process." << endl;
+        exit(EXIT_FAILURE);
+    }
+    else if (pid == 0) {
+        // Child process
+        execl(app_name.c_str(), app_name.c_str(), NULL);
+        // cout << "Failed to execute process." << endl;
+        exit(EXIT_FAILURE);
+    }
+    else {
+        // Parent process
+        return pid;
+    }
 #endif
     return pid;
 }
 
 int get_memory_usage(pid_type pid)
 {
+    int memory = 0;
 #if defined(IS_WINDOWS)
-    HANDLE h = OpenProcess(PROCESS_QUERY_INFORMATION, false, pid);
     PROCESS_MEMORY_COUNTERS_EX pmc;
-    GetProcessMemoryInfo(h, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
-    return pmc.PrivateUsage;
+
+    if (!GetProcessMemoryInfo(process, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc))) {
+        // cout << "Failed to get process memory information: " << GetLastError() << endl;
+        return memory;
+    }
+
+    memory = pmc.PrivateUsage;
 #else
-// linux code
+    rusage usage;
+    if (getrusage(RUSAGE_CHILDREN, &usage) == -1) {
+        // cout << "Failed to get process memory information." << endl;
+        return memory;
+    }
+
+    memory = usage.ru_maxrss;
 #endif
-    return 0;
+    return memory;
 }
 
 int get_time_usage(pid_type pid)

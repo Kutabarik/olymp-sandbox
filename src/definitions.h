@@ -40,7 +40,7 @@ typedef std::size_t pid_type;
 
 void print_usage(const std::string appname);
 void run_task(std::string application, std::string input, std::string output);
-pid_type get_pid(std::string app_name);
+pid_type start_application(std::string app_name);
 int get_memory_usage(pid_type pid);
 int get_time_usage(pid_type pid);
 void print_status(STATUS_TYPE status);
