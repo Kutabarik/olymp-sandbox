@@ -23,26 +23,44 @@ class ThreadManager
         self::$consumerTask = $consume;
         self::$producerTask = $produce;
 
+        /**
+         * Creates $nrConsumers or Runtime objects. Each object is associated with
+         * uniqid ID. 
+         */
         for ($i = 0; $i < self::$nrConsumers; ++$i) {
             $threadId = uniqid();
             self::$consumers[$threadId] = new Runtime();
         }
 
+        /**
+         * create a producer runtime
+         */
         self::$producer = new Runtime();
     }
 
     public static function start(): void
     {
         echo "start" . PHP_EOL;
+        /**
+         * in the Producer we run self::$producerTask with
+         * parameter self::$nrConsumers
+         */
         self::$producer->run(function (Closure $closure, int $nrThreads) {
             $closure($nrThreads);
         }, [self::$producerTask, self::$nrConsumers]);
 
+        /**
+         * in the each consumer we run self::$consumerTask
+         * with parameter $key (equal with uniqid of consumer)
+         */
         foreach (self::$consumers as $key => $consumer) {
             $consumer->run(self::$consumerTask, [$key]);
         }
     }
 
+    /**
+     * close all consumers and producer
+     */
     public static function finalize(): void
     {
         echo "finalize" . PHP_EOL;
@@ -54,7 +72,8 @@ class ThreadManager
 }
 
 /**
- * consumer task
+ * consumer task. it reads data from channel `data_channel`
+ * while not null and process it.
  */
 $consumeTask = function (string $taskId) {
     $channel = Channel::open("data_channel");
@@ -67,7 +86,8 @@ $consumeTask = function (string $taskId) {
 };
 
 /**
- * produser task
+ * produser task, reads data from database and place it into
+ * channel `data_channel`.
  */
 $produceTask = function (int $nrConsumers) {
     include_once __DIR__ . "db.php";
@@ -80,7 +100,7 @@ $produceTask = function (int $nrConsumers) {
     echo "run producer" . PHP_EOL;
     while ($reads++ < 50) {
         //$data = [random_int(1, 5), random_int(1, 5), random_int(1, 5), random_int(1, 5),];
-        $data = getIdsByStatus(1);
+        $data = $db->getIdsByStatus(1);
         foreach ($data as $value) {
             echo "[producer] send data" . json_encode($value) . " to channel" . PHP_EOL;
             $channel->send($value);

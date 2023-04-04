@@ -5,6 +5,8 @@ include_once __DIR__ . "db.php";
 include_once __DIR__ . "solutionManager.php";
 include_once __DIR__ . "threadManager.php";
 
+use parallel\Channel;
+
 $channel = Channel::make("data_channel");
 
 ThreadManager::init($nrThreads, $produceTask, $consumeTask);
