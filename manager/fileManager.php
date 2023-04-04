@@ -3,19 +3,18 @@ class FileManager
 {
 
 	private $config_path;
-	private $solution_path;
 	private $compile_command;
 
-	public function __construct($config_path, $solution_path)
+	public function __construct($config_path)
 	{
 		$this->config_path = $config_path;
-		$this->solution_path = $solution_path;
 		$this->compile_command = '';
 	}
 
-	public function copyAndRenameFile($old_file_path, $new_file_name)
+	public function copyAndRenameFile($old_file_path, $task_id)
 	{
-		$new_file_path = dirname($old_file_path) . '/' . $new_file_name;
+		$file_extension = pathinfo($old_file_path, PATHINFO_EXTENSION);
+		$new_file_path = '/tmp/solutions/' . $task_id . '/solution.' . $file_extension;
 		if (copy($old_file_path, $new_file_path)) {
 			return $new_file_path;
 		} else {
