@@ -3,36 +3,41 @@
 class FileManager
 {
 
-    private $config_path;
-    private $compile_command;
-    private $run_command;
+    private $configPath;
+    private $compileCommand;
+    private $runCommand;
 
     public function __construct($config_path)
     {
-        $this->config_path = $config_path;
-        $this->compile_command = '';
-        $this->run_command = '';
+        $this->configPath = $config_path;
+        $this->compileCommand = '';
+        $this->runCommand = '';
     }
 
-    public function copyAndRenameFile($old_file_path, $task_id): bool|string
+    public function copyAndRenameFile($oldFilePath, $userId): bool|string
     {
-        $file_extension = pathinfo($old_file_path, PATHINFO_EXTENSION);
-        $new_file_path = '/tmp/solutions/'.$task_id.'/solution.'
-            .$file_extension;
-        if (copy($old_file_path, $new_file_path)) {
-            return $new_file_path;
+        $fileExtension = pathinfo($oldFilePath, PATHINFO_EXTENSION);
+        $newFilePath = '/data/users/'.$userId.'/solution.'
+            .$fileExtension;
+
+        $newFilePath = 'C:\Users\malay\Documents\USM\Diplom'.$userId
+            .'/solution.'
+            .$fileExtension;
+
+        if (copy($oldFilePath, $newFilePath)) {
+            return $newFilePath;
         } else {
             return false;
         }
     }
 
-    public function parseConfig($solution_extension): void
+    public function parseConfig($solutionExtension): void
     {
-        $config_json = file_get_contents($this->config_path);
-        $config_decoded = json_decode($config_json, true);
-        foreach ($config_decoded as $language) {
+        $configJSON = file_get_contents($this->configPath);
+        $configDecoded = json_decode($configJSON, true);
+        foreach ($configDecoded as $language) {
             $extension = $language['extension'];
-            if ($extension === $solution_extension) {
+            if ($extension === $solutionExtension) {
                 switch ($extension) {
                     case 'c':
                     case 'cpp':
@@ -46,7 +51,7 @@ class FileManager
                         );
                         $compile = str_replace('${source}', $source, $compile);
                         $compile = str_replace('${binary}', $binary, $compile);
-                        $this->compile_command = $compile;
+                        $this->compileCommand = $compile;
                         echo $compile;
                         break;
                     case 'java':
@@ -67,10 +72,9 @@ class FileManager
                         );
                         $run = str_replace('${binary}', $binary, $run);
 
-                        $this->compile_command = $compile;
-                        $this->run_command = $run;
-                        echo $run;
-                        echo $compile;
+                        $this->compileCommand = $compile;
+                        $this->runCommand = $run;
+
                         break;
                     case 'php':
                     case 'py':
@@ -88,28 +92,26 @@ class FileManager
                             $run
                         );
 
-                        $this->run_command = $run;
+                        $this->runCommand = $run;
 
-                        echo $run;
                         break;
                 }
             }
         }
     }
 
-    public function compileFile($file_path): bool|string
+    public function compileFile($filePath): bool|string
     {
-        $solution_extension = pathinfo($file_path, PATHINFO_EXTENSION);
-        $new_file_name = 'temp.'.$solution_extension;
-        $new_file_path = $this->copyAndRenameFile($file_path, $new_file_name);
+        $solutionExtension = pathinfo($filePath, PATHINFO_EXTENSION);
+        $newFilePath = $this->copyAndRenameFile($filePath,);
 
-        if ($new_file_path !== false) {
-            $this->parseConfig($solution_extension);
+        if ($newFilePath !== false) {
+            $this->parseConfig($solutionExtension);
 
-            if ($this->compile_command !== '') {
-                chdir(dirname($new_file_path));
-                exec($this->compile_command);
-                return pathinfo($new_file_path, PATHINFO_FILENAME);
+            if ($this->compileCommand !== '') {
+                chdir(dirname($newFilePath));
+                exec($this->compileCommand);
+                return pathinfo($newFilePath, PATHINFO_FILENAME);
             } else {
                 return false;
             }
