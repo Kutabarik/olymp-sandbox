@@ -78,13 +78,24 @@ class ThreadManager
  */
 $consumeTask = function (string $taskId) {
     include_once __DIR__."/config.php";
+    include_once __DIR__."/fileManager.php";
+    include_once __DIR__."/db.php";
+
+    $fileManager = new FileManager('../compile-config.json');
 
     $channel = Channel::open("data_channel");
-    echo "run task ${$taskId}".PHP_EOL;
+    //echo "run task ${$taskId}".PHP_EOL;
 
-    while (($data = $channel->recv()) != null) {
-        echo "[${$taskId}] consumer read data ".json_encode($data).PHP_EOL;
-        sleep($consumerTimeOut);
+    while (($solution = $channel->recv()) != null) {
+//        echo "[${$taskId}] consumer read data ".json_encode($data).PHP_EOL;
+//        sleep($consumerTimeOut);
+        $fileManager->compileFile($solution['path']);
+        $db->updateSolutionStatus($solution['id'], 3);
+        //наверное берем из БД данные о задаче
+        //также наверн надо передавать путь для звапуска, который создается ранее, но пока не используется
+        $command
+            = "olymp-sandbox -a $app -t $time -m $memory -i $in_file -o $out_file";
+        exec($command, $output, $return_value);
     }
 
     echo "consumer ${$taskId} stops".PHP_EOL;
@@ -105,14 +116,16 @@ $produceTask = function (int $nrConsumers) {
     echo "run producer".PHP_EOL;
 
     while ($reads++ < 50) {
+        //while (true) {
         //$data = [random_int(1, 5), random_int(1, 5), random_int(1, 5), random_int(1, 5),];
-        $data = $db->getIdsByStatus(1);
-        foreach ($data as $value) {
-            echo "[producer] send data".json_encode($value)." to channel"
-                .PHP_EOL;
-            $solutionPath = $db->getSolutionPath($value['id']);
-            $channel->send($value, $solutionPath);
-            $db->updateSolutionStatus($value['id'], 2);
+        $solutions = $db->getSolutionsByStatus(1);
+
+        foreach ($solutions as $solution) {
+//            echo "[producer] send data".json_encode($solution)." to channel"
+//                .PHP_EOL;
+
+            $channel->send($solution);
+            $db->updateSolutionStatus($solution['id'], 2);
             $db->close();
         }
         sleep($producerTimeOut);

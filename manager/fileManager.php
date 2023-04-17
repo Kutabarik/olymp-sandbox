@@ -96,7 +96,7 @@ class FileManager
         }
     }
 
-    public function compileFile($filePath): bool|string
+    public function compileFile($filePath): bool
     {
         $solutionExtension = pathinfo($filePath, PATHINFO_EXTENSION);
 
@@ -112,7 +112,7 @@ class FileManager
             chdir(dirname($solutionPath));
             exec($this->compileCommand);
 
-            return pathinfo($solutionPath, PATHINFO_FILENAME);
+            return true;
         } else {
             return false;
         }

@@ -31,7 +31,7 @@ class DB
             return true;
         } catch (PDOException $e) {
             echo "Connection failed: ".$e->getMessage();
-            
+
             return false;
         }
     }
@@ -74,21 +74,16 @@ class DB
         return $path;
     }
 
-    public function getIdsByStatus($status)
+    public function getSolutionsByStatus($status)
     {
         try {
-            $sql = "SELECT id FROM solutions WHERE status = :status";
+            $sql = "SELECT * FROM solutions WHERE status = :status";
             $stmt = $this->conn->prepare($sql);
             $stmt->bindParam(':status', $status);
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $ids = [];
 
-            foreach ($result as $row) {
-                $ids[] = $row['id'];
-            }
-
-            return $ids;
+            return $result;
         } catch (PDOException $e) {
             echo "Error retrieving ids: ".$e->getMessage();
             return [];
