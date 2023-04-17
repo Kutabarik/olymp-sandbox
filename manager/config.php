@@ -2,6 +2,10 @@
 
 $dataDir = "/var/www/data/user/";
 
+/**
+ * @var $producerTimeOut
+ * @var $consumerTimeOut
+ */
 $nrConsumers = 10;
 $consumerTimeOut = 3;
 $producerTimeOut = 1;
