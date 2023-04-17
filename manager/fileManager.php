@@ -14,20 +14,15 @@ class FileManager
         $this->runCommand = '';
     }
 
-    public function copyAndRenameFile($oldFilePath, $userId): bool|string
+    public function copyAndRenameFile($filePath): string
     {
-        $fileExtension = pathinfo($oldFilePath, PATHINFO_EXTENSION);
-        $newFilePath = '/data/users/'.$userId.'/solution.'
-            .$fileExtension;
-
-        $newFilePath = 'C:\Users\malay\Documents\USM\Diplom'.$userId
-            .'/solution.'
-            .$fileExtension;
-
-        if (copy($oldFilePath, $newFilePath)) {
-            return $newFilePath;
+        $fileInfo = pathinfo($filePath);
+        $newFilePath = $fileInfo['dirname'].DIRECTORY_SEPARATOR.'solution'.'.'
+            .$fileInfo['extension'];
+        if (!copy($filePath, $newFilePath)) {
+            throw new Exception('Failed to copy file.');
         } else {
-            return false;
+            return $newFilePath;
         }
     }
 
@@ -52,7 +47,7 @@ class FileManager
                         $compile = str_replace('${source}', $source, $compile);
                         $compile = str_replace('${binary}', $binary, $compile);
                         $this->compileCommand = $compile;
-                        echo $compile;
+
                         break;
                     case 'java':
                         $compiler = $language['compiler'];
@@ -103,20 +98,26 @@ class FileManager
     public function compileFile($filePath): bool|string
     {
         $solutionExtension = pathinfo($filePath, PATHINFO_EXTENSION);
-        $newFilePath = $this->copyAndRenameFile($filePath,);
+        try {
+            $solutionPath = $this->copyAndRenameFile($filePath);
+        } catch (Exception $e) {
+            echo 'Error: '.$e->getMessage();
+        }
 
-        if ($newFilePath !== false) {
-            $this->parseConfig($solutionExtension);
+        $this->parseConfig($solutionExtension);
 
-            if ($this->compileCommand !== '') {
-                chdir(dirname($newFilePath));
-                exec($this->compileCommand);
-                return pathinfo($newFilePath, PATHINFO_FILENAME);
-            } else {
-                return false;
-            }
+        if ($this->compileCommand !== '') {
+            chdir(dirname($solutionPath));
+            exec($this->compileCommand);
+
+            return pathinfo($solutionPath, PATHINFO_FILENAME);
         } else {
             return false;
         }
+    }
+
+    public function getRunCommand(): string
+    {
+        return $this->runCommand;
     }
 }
