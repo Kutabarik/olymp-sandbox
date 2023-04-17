@@ -1,7 +1,5 @@
 <?php
 
-include_once __DIR__ . "config.php";
-
 use parallel\{Channel, Runtime};
 
 /**
@@ -10,22 +8,25 @@ use parallel\{Channel, Runtime};
 class ThreadManager
 {
 
-    private static $consumers = [];
+    private static array $consumers = [];
     private static $producer;
     private static $nrConsumers;
     private static $consumerTask;
     private static $producerTask;
 
-    public static function init(int $nrThreads, Closure $produce, Closure $consume)
-    {
-        echo "init" . PHP_EOL;
+    public static function init(
+        int $nrThreads,
+        Closure $produce,
+        Closure $consume
+    ): void {
+        echo "init".PHP_EOL;
         self::$nrConsumers = $nrThreads;
         self::$consumerTask = $consume;
         self::$producerTask = $produce;
 
         /**
          * Creates $nrConsumers or Runtime objects. Each object is associated with
-         * uniqid ID. 
+         * uniqid ID.
          */
         for ($i = 0; $i < self::$nrConsumers; ++$i) {
             $threadId = uniqid();
@@ -40,7 +41,7 @@ class ThreadManager
 
     public static function start(): void
     {
-        echo "start" . PHP_EOL;
+        echo "start".PHP_EOL;
         /**
          * in the Producer we run self::$producerTask with
          * parameter self::$nrConsumers
@@ -63,7 +64,7 @@ class ThreadManager
      */
     public static function finalize(): void
     {
-        echo "finalize" . PHP_EOL;
+        echo "finalize".PHP_EOL;
         self::$producer->close();
         foreach (self::$consumers as $consumer) {
             $consumer->close();
@@ -76,61 +77,49 @@ class ThreadManager
  * while not null and process it.
  */
 $consumeTask = function (string $taskId) {
+    include_once __DIR__."/config.php";
+
     $channel = Channel::open("data_channel");
-    echo "run task #{$taskId}" . PHP_EOL;
+    echo "run task ${$taskId}".PHP_EOL;
+
     while (($data = $channel->recv()) != null) {
-        echo "[{$taskId}] consumer read data " . json_encode($data) . PHP_EOL;
+        echo "[${$taskId}] consumer read data ".json_encode($data).PHP_EOL;
         sleep($consumerTimeOut);
     }
-    echo "consumer {$taskId} stops" . PHP_EOL;
+
+    echo "consumer ${$taskId} stops".PHP_EOL;
 };
 
 /**
- * produser task, reads data from database and place it into
+ * producer task, reads data from database and place it into
  * channel `data_channel`.
  */
 $produceTask = function (int $nrConsumers) {
-    include_once __DIR__ . "db.php";
+    include_once __DIR__."/db.php";
 
-    $db = new MySQLDB('localhost', 'username', 'password', 'database');
+    $db = new DB('localhost', 'username', 'password', 'database');
     $db->connect();
 
     $reads = 0;
     $channel = Channel::open("data_channel");
-    echo "run producer" . PHP_EOL;
+    echo "run producer".PHP_EOL;
+
     while ($reads++ < 50) {
         //$data = [random_int(1, 5), random_int(1, 5), random_int(1, 5), random_int(1, 5),];
         $data = $db->getIdsByStatus(1);
         foreach ($data as $value) {
-            echo "[producer] send data" . json_encode($value) . " to channel" . PHP_EOL;
-            $channel->send($value);
+            echo "[producer] send data".json_encode($value)." to channel"
+                .PHP_EOL;
+            $solutionPath = $db->getSolutionPath($value['id']);
+            $channel->send($value, $solutionPath);
             $db->updateSolutionStatus($value['id'], 2);
-            //копируем файл и переименовываем
+            $db->close();
         }
         sleep($producerTimeOut);
     }
+
     for ($i = 0; $i < $nrConsumers; ++$i) {
         $channel->send(null);
     }
-    echo "producer stops" . PHP_EOL;
+    echo "producer stops".PHP_EOL;
 };
-
-
-// $config = file_get_contents($compiler_config);
-// $config_decoded = json_decode($config, true);
-
-// //create string to compile file
-// foreach ($config_decoded as $item) {
-//   if ($item['extension'] === $solution_extension) {
-//     if (isset($item["compiler"])) {
-//       $compiler = $item["compiler"];
-//       $binary = $item["binary"];
-//       $source = $item["source"];
-//       $compile = str_replace("\${compiler}", $compiler, $item["compile"]);
-//       $compile = str_replace("\${source}", $source, $compile);
-//       $compile = str_replace("\${binary}", $binary, $compile);
-
-//       print_r($compile);
-//     }
-//   }
-// }

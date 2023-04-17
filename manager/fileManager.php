@@ -19,6 +19,7 @@ class FileManager
         $fileInfo = pathinfo($filePath);
         $newFilePath = $fileInfo['dirname'].DIRECTORY_SEPARATOR.'solution'.'.'
             .$fileInfo['extension'];
+
         if (!copy($filePath, $newFilePath)) {
             throw new Exception('Failed to copy file.');
         } else {
@@ -30,8 +31,10 @@ class FileManager
     {
         $configJSON = file_get_contents($this->configPath);
         $configDecoded = json_decode($configJSON, true);
+
         foreach ($configDecoded as $language) {
             $extension = $language['extension'];
+
             if ($extension === $solutionExtension) {
                 switch ($extension) {
                     case 'c':
@@ -66,7 +69,6 @@ class FileManager
                             $language['run']
                         );
                         $run = str_replace('${binary}', $binary, $run);
-
                         $this->compileCommand = $compile;
                         $this->runCommand = $run;
 
@@ -86,7 +88,6 @@ class FileManager
                             $interpreter,
                             $run
                         );
-
                         $this->runCommand = $run;
 
                         break;
@@ -98,6 +99,7 @@ class FileManager
     public function compileFile($filePath): bool|string
     {
         $solutionExtension = pathinfo($filePath, PATHINFO_EXTENSION);
+
         try {
             $solutionPath = $this->copyAndRenameFile($filePath);
         } catch (Exception $e) {

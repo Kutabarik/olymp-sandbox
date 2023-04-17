@@ -31,6 +31,7 @@ class DB
             return true;
         } catch (PDOException $e) {
             echo "Connection failed: ".$e->getMessage();
+            
             return false;
         }
     }
@@ -57,7 +58,20 @@ class DB
         $stmt->bindParam(':id', $id);
         $stmt->execute();
         $status = $stmt->fetchColumn();
+
         return $status;
+    }
+
+    public function getSolutionPath($id)
+    {
+        $stmt = $this->conn->prepare(
+            "SELECT path FROM solutions WHERE id = :id"
+        );
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        $path = $stmt->fetchColumn();
+
+        return $path;
     }
 
     public function getIdsByStatus($status)
@@ -69,9 +83,11 @@ class DB
             $stmt->execute();
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             $ids = [];
+
             foreach ($result as $row) {
                 $ids[] = $row['id'];
             }
+
             return $ids;
         } catch (PDOException $e) {
             echo "Error retrieving ids: ".$e->getMessage();
