@@ -1,5 +1,7 @@
 <?php
 
+include_once __DIR__.'/LanguageConfig.php';
+
 class FileManager
 {
 
@@ -38,7 +40,8 @@ class FileManager
         }
     }
 
-    public function getLanguageConfig($extension): LanguageConfig {
+    public function getLanguageConfig($extension): LanguageConfig
+    {
         return $this->languageConfigs[$extension];
     }
 
