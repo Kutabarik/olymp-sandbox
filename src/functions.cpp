@@ -54,7 +54,6 @@ void run_task(std::string application, std::string input, std::string output)
 
     std::size_t pid = start_application(application);
 
-    while()
     std::size_t memoryUsed = get_memory_usage(pid);
 
     auto stop = std::chrono::high_resolution_clock::now();
