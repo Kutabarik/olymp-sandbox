@@ -4,17 +4,17 @@ class FileManager
 {
 
     private $configPath;
-    private $compileCommand;
-    private $runCommand;
+    private $languageConfigs;
 
-    public function __construct($config_path)
+    public function __construct(string $configPath)
     {
-        $this->configPath = $config_path;
-        $this->compileCommand = '';
-        $this->runCommand = '';
+        $this->configPath = $configPath;
+        $this->languageConfigs = [];
+
+        $this->parseConfig();
     }
 
-    public function copyAndRenameFile($filePath): string
+    public function copyAndRenameFile(string $filePath): string
     {
         $fileInfo = pathinfo($filePath);
         $newFilePath = $fileInfo['dirname'].DIRECTORY_SEPARATOR.'solution'.'.'
@@ -27,76 +27,22 @@ class FileManager
         }
     }
 
-    public function parseConfig($solutionExtension): void
+    private function parseConfig(): void
     {
         $configJSON = file_get_contents($this->configPath);
         $configDecoded = json_decode($configJSON, true);
 
         foreach ($configDecoded as $language) {
             $extension = $language['extension'];
-
-            if ($extension === $solutionExtension) {
-                switch ($extension) {
-                    case 'c':
-                    case 'cpp':
-                        $compiler = $language["compiler"];
-                        $binary = $language["binary"];
-                        $source = $language["source"];
-                        $compile = str_replace(
-                            '${compiler}',
-                            $compiler,
-                            $language['compile']
-                        );
-                        $compile = str_replace('${source}', $source, $compile);
-                        $compile = str_replace('${binary}', $binary, $compile);
-                        $this->compileCommand = $compile;
-
-                        break;
-                    case 'java':
-                        $compiler = $language['compiler'];
-                        $interpreter = $language['interpreter'];
-                        $binary = $language['binary'];
-                        $source = $language['source'];
-                        $compile = str_replace(
-                            '${compiler}',
-                            $compiler,
-                            $language['compile']
-                        );
-                        $compile = str_replace('${source}', $source, $compile);
-                        $run = str_replace(
-                            '${interpreter}',
-                            $interpreter,
-                            $language['run']
-                        );
-                        $run = str_replace('${binary}', $binary, $run);
-                        $this->compileCommand = $compile;
-                        $this->runCommand = $run;
-
-                        break;
-                    case 'php':
-                    case 'py':
-                    case 'js':
-                        $interpreter = $language["interpreter"];
-                        $source = $language["source"];
-                        $run = str_replace(
-                            '${source}',
-                            $source,
-                            $language['run']
-                        );
-                        $run = str_replace(
-                            '${interpreter}',
-                            $interpreter,
-                            $run
-                        );
-                        $this->runCommand = $run;
-
-                        break;
-                }
-            }
+            $this->languageConfigs[$extension] = new LanguageConfig($language);
         }
     }
 
-    public function compileFile($filePath): bool
+    public function getLanguageConfig($extension): LanguageConfig {
+        return $this->languageConfigs[$extension];
+    }
+
+    public function compileFile(string $filePath): string
     {
         $solutionExtension = pathinfo($filePath, PATHINFO_EXTENSION);
 
@@ -106,20 +52,12 @@ class FileManager
             echo 'Error: '.$e->getMessage();
         }
 
-        $this->parseConfig($solutionExtension);
+        $languageConfig = $this->getLanguageConfig($solutionExtension);
 
-        if ($this->compileCommand !== '') {
+        if ($languageConfig->compile !== '') {
             chdir(dirname($solutionPath));
-            exec($this->compileCommand);
-
-            return true;
-        } else {
-            return false;
+            exec($languageConfig->compile);
         }
-    }
-
-    public function getRunCommand(): string
-    {
-        return $this->runCommand;
+        return $languageConfig->run;
     }
 }

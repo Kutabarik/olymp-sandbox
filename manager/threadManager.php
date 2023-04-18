@@ -19,7 +19,7 @@ class ThreadManager
         Closure $produce,
         Closure $consume
     ): void {
-        echo "init".PHP_EOL;
+        echo "init" . PHP_EOL;
         self::$nrConsumers = $nrThreads;
         self::$consumerTask = $consume;
         self::$producerTask = $produce;
@@ -41,7 +41,7 @@ class ThreadManager
 
     public static function start(): void
     {
-        echo "start".PHP_EOL;
+        echo "start" . PHP_EOL;
         /**
          * in the Producer we run self::$producerTask with
          * parameter self::$nrConsumers
@@ -64,7 +64,7 @@ class ThreadManager
      */
     public static function finalize(): void
     {
-        echo "finalize".PHP_EOL;
+        echo "finalize" . PHP_EOL;
         self::$producer->close();
         foreach (self::$consumers as $consumer) {
             $consumer->close();
@@ -77,9 +77,9 @@ class ThreadManager
  * while not null and process it.
  */
 $consumeTask = function (string $taskId) {
-    include_once __DIR__."/config.php";
-    include_once __DIR__."/fileManager.php";
-    include_once __DIR__."/db.php";
+    include_once __DIR__ . "/config.php";
+    include_once __DIR__ . "/fileManager.php";
+    include_once __DIR__ . "/db.php";
 
     $fileManager = new FileManager('../compile-config.json');
 
@@ -87,18 +87,23 @@ $consumeTask = function (string $taskId) {
     //echo "run task ${$taskId}".PHP_EOL;
 
     while (($solution = $channel->recv()) != null) {
-//        echo "[${$taskId}] consumer read data ".json_encode($data).PHP_EOL;
-//        sleep($consumerTimeOut);
-        $fileManager->compileFile($solution['path']);
+        //        echo "[${$taskId}] consumer read data ".json_encode($data).PHP_EOL;
+        //        sleep($consumerTimeOut);
+        $execCommand = $fileManager->compileFile($solution['path']);
         $db->updateSolutionStatus($solution['id'], 3);
         //наверное берем из БД данные о задаче
         //также наверн надо передавать путь для звапуска, который создается ранее, но пока не используется
-        $command
-            = "olymp-sandbox -a $app -t $time -m $memory -i $in_file -o $out_file";
-        exec($command, $output, $return_value);
+        $tests = $db->getTests($solution['task_id']);
+        list($time, $memory) = $db->getTaskLimits($solution['task_id']);
+        foreach ($tests as $test) {
+            $command = "olymp-sandbox -a {$execCommand}" .
+                " -t {$time} -m {$memory}" .
+                " -i {$test["input"]} -o {$test["output"]}";
+            exec($command, $output, $return_value);
+        }
     }
 
-    echo "consumer ${$taskId} stops".PHP_EOL;
+    echo "consumer ${$taskId} stops" . PHP_EOL;
 };
 
 /**
@@ -106,14 +111,14 @@ $consumeTask = function (string $taskId) {
  * channel `data_channel`.
  */
 $produceTask = function (int $nrConsumers) {
-    include_once __DIR__."/db.php";
+    include_once __DIR__ . "/db.php";
 
     $db = new DB('localhost', 'username', 'password', 'database');
     $db->connect();
 
     $reads = 0;
     $channel = Channel::open("data_channel");
-    echo "run producer".PHP_EOL;
+    echo "run producer" . PHP_EOL;
 
     while ($reads++ < 50) {
         //while (true) {
@@ -121,8 +126,8 @@ $produceTask = function (int $nrConsumers) {
         $solutions = $db->getSolutionsByStatus(1);
 
         foreach ($solutions as $solution) {
-//            echo "[producer] send data".json_encode($solution)." to channel"
-//                .PHP_EOL;
+            //            echo "[producer] send data".json_encode($solution)." to channel"
+            //                .PHP_EOL;
 
             $channel->send($solution);
             $db->updateSolutionStatus($solution['id'], 2);
@@ -134,5 +139,5 @@ $produceTask = function (int $nrConsumers) {
     for ($i = 0; $i < $nrConsumers; ++$i) {
         $channel->send(null);
     }
-    echo "producer stops".PHP_EOL;
+    echo "producer stops" . PHP_EOL;
 };
