@@ -3,10 +3,14 @@ CFLAGS=-c
 LDFLAGS=-pthread
 SRCDIR=src/
 BINDIR=bin/
-TESTFILESDIR=testfiles/
 SOURCES=$(addprefix $(SRCDIR),constants.cpp functions.cpp olymp-sandbox.cpp)
 OBJECTS=$(addprefix $(BINDIR),$(notdir $(SOURCES:.cpp=.o)))
 EXECUTABLE=$(BINDIR)olymp-sandbox
+
+EXAMPLESDIR=examples/
+TESTAPPDIR=$(EXAMPLESDIR)testapp/
+TESTAPP=testapp
+TESTFILESDIR=testfiles/
 
 all: $(SOURCES) $(EXECUTABLE)
 
@@ -19,10 +23,12 @@ $(BINDIR)%.o: $(SRCDIR)%.cpp
 clean:
 	rm -rf $(BINDIR)*.o $(EXECUTABLE)
 
-test:
-	$(CC) $(SRCDIR)test.cpp -o $(BINDIR)testapp
-	$(BINDIR)/testapp < $(TESTFILESDIR)/input01.txt
-	$(BINDIR)/testapp < $(TESTFILESDIR)/input02.txt
-	$(BINDIR)/testapp < $(TESTFILESDIR)/input03.txt
-	$(BINDIR)/testapp < $(TESTFILESDIR)/input04.txt
-	$(BINDIR)/testapp < $(TESTFILESDIR)/input05.txt
+testapp:
+	$(CC) $(TESTAPPDIR)$(TESTAPP).cpp -o $(BINDIR)$(TESTAPP) -static
+
+test: testapp
+	$(EXECUTABLE) --time=1s --memory=16m --app='$(BINDIR)/$(TESTAPP) < $(TESTFILESDIR)/input01.txt'
+	$(EXECUTABLE) --time=1s --memory=16m --app='$(BINDIR)/$(TESTAPP) < $(TESTFILESDIR)/input02.txt'
+	$(EXECUTABLE) --time=1s --memory=16m --app='$(BINDIR)/$(TESTAPP) < $(TESTFILESDIR)/input03.txt'
+	$(EXECUTABLE) --time=1s --memory=16m --app='$(BINDIR)/$(TESTAPP) < $(TESTFILESDIR)/input04.txt'
+	$(EXECUTABLE) --time=1s --memory=16m --app='$(BINDIR)/$(TESTAPP) < $(TESTFILESDIR)/input05.txt'
