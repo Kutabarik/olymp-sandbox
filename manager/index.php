@@ -1,7 +1,7 @@
 <?php
 
 include_once __DIR__."/config.php";
-include_once __DIR__."/db.php";
+include_once __DIR__."/DB.php";
 include_once __DIR__."/fileManager.php";
 include_once __DIR__."/threadManager.php";
 
