@@ -9,6 +9,7 @@ $dataDir = "/var/www/data/user/";
 $nrConsumers = 10;
 $consumerTimeOut = 3;
 $producerTimeOut = 1;
+$nrThreads = 4;
 
 $dbuser = getenv("MARIADB_USER");
 $dbname = getenv("MARIADB_DATABASE");

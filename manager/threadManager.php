@@ -111,7 +111,7 @@ $consumeTask = function (string $taskId) {
  * channel `data_channel`.
  */
 $produceTask = function (int $nrConsumers) {
-    include_once __DIR__."/db.php";
+    include_once __DIR__."/DB.php";
 
     $db = new DB('localhost', 'username', 'password', 'database');
     $db->connect();
