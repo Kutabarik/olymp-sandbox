@@ -81,6 +81,9 @@ $consumeTask = function (string $taskId) {
     include_once __DIR__."/fileManager.php";
     include_once __DIR__."/DB.php";
 
+    $db = new DB($dbhost, $dbuser, $dbpass, $dbname);
+    $db->connect();
+
     $fileManager = new FileManager(__DIR__."/../compile-config.json");
 
     $channel = Channel::open("data_channel");
@@ -89,16 +92,23 @@ $consumeTask = function (string $taskId) {
     while (($solution = $channel->recv()) != null) {
         //        echo "[${$taskId}] consumer read data ".json_encode($data).PHP_EOL;
         //        sleep($consumerTimeOut);
-        $execCommand = $fileManager->compileFile($solution['path']);
+        $execCommand = $fileManager->compileFile(
+            '/data/user/'.$solution['user_id'].'/'.$solution['filename']
+        );
         $db->updateSolutionStatus($solution['id'], 3);
         //наверное берем из БД данные о задаче
-        //также наверн надо передавать путь для звапуска, который создается ранее, но пока не используется
-        $tests = $db->getTests($solution['task_id']);
-        list($time, $memory) = $db->getTaskLimits($solution['task_id']);
+        //$tests = $db->getTests($solution['task_id']);
+        $tests = [['input' => 10, 'output' => 20]];
+        list($time, $memory) = [10, 20];
+        //list($time, $memory) = $db->getTaskLimits($solution['task_id']);
         foreach ($tests as $test) {
-            $command = "olymp-sandbox -a {$execCommand}".
+            $command
+                = "olymp-sandbox -a /data/user/{$solution['user_id']}/{$execCommand}"
+                .
                 " -t {$time} -m {$memory}".
                 " -i {$test["input"]} -o {$test["output"]}";
+            echo '\n';
+            print_r($command);
             exec($command, $output, $return_value);
         }
     }
@@ -121,18 +131,14 @@ $produceTask = function (int $nrConsumers) {
     $channel = Channel::open("data_channel");
     echo "run producer".PHP_EOL;
 
-    while ($reads++ < 50) {
+    while (true) {
         //while (true) {
         //$data = [random_int(1, 5), random_int(1, 5), random_int(1, 5), random_int(1, 5),];
         $solutions = $db->getSolutionsByStatus(1);
 
         foreach ($solutions as $solution) {
-            //            echo "[producer] send data".json_encode($solution)." to channel"
-            //                .PHP_EOL;
-
             $channel->send($solution);
             $db->updateSolutionStatus($solution['id'], 2);
-            $db->close();
         }
         sleep($producerTimeOut);
     }
