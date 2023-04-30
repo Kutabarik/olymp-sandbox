@@ -39,7 +39,7 @@ class DB
     public function updateSolutionStatus($id, $newStatus): void
     {
         try {
-            $sql = "UPDATE solutions SET status=:newStatus WHERE id=:id";
+            $sql = "UPDATE user_solution SET status=:newStatus WHERE id=:id";
             $stmt = $this->conn->prepare($sql);
             $stmt->bindParam(':newStatus', $newStatus);
             $stmt->bindParam(':id', $id);
@@ -53,7 +53,7 @@ class DB
     public function getSolutionStatus($id)
     {
         $stmt = $this->conn->prepare(
-            "SELECT status FROM solutions WHERE id = :id"
+            "SELECT status FROM user_solution WHERE id = :id"
         );
         $stmt->bindParam(':id', $id);
         $stmt->execute();
@@ -65,7 +65,7 @@ class DB
     public function getSolutionPath($id)
     {
         $stmt = $this->conn->prepare(
-            "SELECT path FROM solutions WHERE id = :id"
+            "SELECT filename FROM user_solution WHERE id = :id"
         );
         $stmt->bindParam(':id', $id);
         $stmt->execute();
@@ -77,7 +77,7 @@ class DB
     public function getSolutionsByStatus($status)
     {
         try {
-            $sql = "SELECT * FROM solutions WHERE status = :status";
+            $sql = "SELECT * FROM user_solution WHERE status = :status";
             $stmt = $this->conn->prepare($sql);
             $stmt->bindParam(':status', $status);
             $stmt->execute();

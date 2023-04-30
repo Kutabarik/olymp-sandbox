@@ -112,8 +112,9 @@ $consumeTask = function (string $taskId) {
  */
 $produceTask = function (int $nrConsumers) {
     include_once __DIR__."/DB.php";
+    include_once __DIR__."/config.php";
 
-    $db = new DB('localhost', 'username', 'password', 'database');
+    $db = new DB($dbhost, $dbuser, $dbpass, $dbname);
     $db->connect();
 
     $reads = 0;
