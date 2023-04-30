@@ -81,7 +81,7 @@ $consumeTask = function (string $taskId) {
     include_once __DIR__."/fileManager.php";
     include_once __DIR__."/DB.php";
 
-    $fileManager = new FileManager("./../compile-config.json");
+    $fileManager = new FileManager(__DIR__."../compile-config.json");
 
     $channel = Channel::open("data_channel");
     //echo "run task ${$taskId}".PHP_EOL;

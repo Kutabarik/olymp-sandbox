@@ -2,15 +2,16 @@
 
 /**
  * "language": "C++x17",
- *	"extension": "cpp",
- *	"source": "solution.cpp",
- *	"compile": "${compiler} ${source} -O2 -std=c++17 -o ${binary}",
- *	"run": "${binary}",
- *	"compiler": "/usr/bin/g++",
- *	"binary": "solution",
- *	"version": "${compiler} -v"
+ *    "extension": "cpp",
+ *    "source": "solution.cpp",
+ *    "compile": "${compiler} ${source} -O2 -std=c++17 -o ${binary}",
+ *    "run": "${binary}",
+ *    "compiler": "/usr/bin/g++",
+ *    "binary": "solution",
+ *    "version": "${compiler} -v"
  */
-class LanguageConfig {
+class LanguageConfig
+{
     public $language;
     public $extension;
     public $source;
@@ -31,12 +32,13 @@ class LanguageConfig {
         $this->compiler = $obj->compiler ?? "";
         $this->interpreter = $obj->interpreter ?? "";
         $this->binary = $obj->binary ?? "";
-        $this->version = $obj->version;
+        $this->version = $obj->version ?? "";
 
         $this->prepare();
     }
 
-    private function prepare() {
+    private function prepare()
+    {
         $this->compile = strtr($this->compile, [
             '${compiler}' => $this->compiler,
             '${source}' => $this->source,

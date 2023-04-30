@@ -29,13 +29,14 @@ class FileManager
         }
     }
 
-    private function parseConfig(): void
+    public function parseConfig(): void
     {
         $configJSON = file_get_contents($this->configPath);
-        $configDecoded = json_decode($configJSON, true);
+        $configDecoded = json_decode($configJSON);
+
 
         foreach ($configDecoded as $language) {
-            $extension = $language['extension'];
+            $extension = $language->extension;
             $this->languageConfigs[$extension] = new LanguageConfig($language);
         }
     }
