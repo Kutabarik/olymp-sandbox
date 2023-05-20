@@ -95,7 +95,7 @@ $consumeTask = function (string $taskId) {
         $execCommand = $fileManager->compileFile(
             '/data/user/'.$solution['user_id'].'/'.$solution['filename']
         );
-        $db->updateSolutionStatus($solution['id'], 3);
+        $db->updateSolutionStatus($solution['id'], 2);
         //наверное берем из БД данные о задаче
         //$tests = $db->getTests($solution['task_id']);
         $tests = [['input' => 10, 'output' => 20]];
@@ -134,11 +134,11 @@ $produceTask = function (int $nrConsumers) {
     while (true) {
         //while (true) {
         //$data = [random_int(1, 5), random_int(1, 5), random_int(1, 5), random_int(1, 5),];
-        $solutions = $db->getSolutionsByStatus(1);
+        $solutions = $db->getSolutionsByStatus(0);
 
         foreach ($solutions as $solution) {
             $channel->send($solution);
-            $db->updateSolutionStatus($solution['id'], 2);
+            $db->updateSolutionStatus($solution['id'], 1);
         }
         sleep($producerTimeOut);
     }
