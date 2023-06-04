@@ -16,8 +16,7 @@ void print_usage(const std::string appname)
 void print_status(STATUS_TYPE status, double time, int memory)
 {
     const std::string message[] = {
-        "success",
-        "fail",
+        "ok",
         "time limit",
         "memory limit",
         "execution failed",
