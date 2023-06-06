@@ -1,6 +1,6 @@
 <?php
 
-include_once __DIR__.'/LanguageConfig.php';
+include_once __DIR__ . '/LanguageConfig.php';
 
 class FileManager
 {
@@ -19,8 +19,8 @@ class FileManager
     public function copyAndRenameFile(string $filePath): string
     {
         $fileInfo = pathinfo($filePath);
-        $newFilePath = $fileInfo['dirname'].DIRECTORY_SEPARATOR.'solution'.'.'
-            .$fileInfo['extension'];
+        $newFilePath = $fileInfo['dirname'] . DIRECTORY_SEPARATOR . 'solution' . '.'
+            . $fileInfo['extension'];
 
         if (!copy($filePath, $newFilePath)) {
             throw new Exception('Failed to copy file.');
@@ -53,7 +53,7 @@ class FileManager
         try {
             $solutionPath = $this->copyAndRenameFile($filePath);
         } catch (Exception $e) {
-            echo 'Error: '.$e->getMessage();
+            echo 'Error: ' . $e->getMessage();
         }
 
         $languageConfig = $this->getLanguageConfig($solutionExtension);

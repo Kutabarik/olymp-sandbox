@@ -30,7 +30,7 @@ class DB
             );
             return true;
         } catch (PDOException $e) {
-            echo "Connection failed: ".$e->getMessage();
+            echo "Connection failed: " . $e->getMessage();
 
             return false;
         }
@@ -46,7 +46,7 @@ class DB
             $stmt->execute();
             echo "Status updated successfully";
         } catch (PDOException $e) {
-            echo "Error updating status: ".$e->getMessage();
+            echo "Error updating status: " . $e->getMessage();
         }
     }
 
@@ -85,7 +85,7 @@ class DB
 
             return $result;
         } catch (PDOException $e) {
-            echo "Error retrieving ids: ".$e->getMessage();
+            echo "Error retrieving ids: " . $e->getMessage();
             return [];
         }
     }

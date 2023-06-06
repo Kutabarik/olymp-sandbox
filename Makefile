@@ -4,7 +4,7 @@ LDFLAGS=-pthread
 
 # dirs
 BINDIR=./bin
-SRCDIR=./src
+SRCDIR=./src/sandbox
 TESTFILESDIR=./testfiles
 
 
