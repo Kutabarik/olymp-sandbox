@@ -84,7 +84,7 @@ $consumeTask = function (string $taskId) {
     $db = new DB(Config::$dbhost, Config::$dbuser, Config::$dbpass, Config::$dbname);
     $db->connect();
 
-    $fileManager = new FileManager(__DIR__ . "/../compile-config.json");
+    $fileManager = new FileManager(Config::$compilers);
 
     $channel = Channel::open("data_channel");
     echo "run consumer {$taskId}".PHP_EOL;

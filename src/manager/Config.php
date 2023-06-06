@@ -3,6 +3,7 @@
 class Config
 {
     public static $dataDir = "/var/www/data/user/";
+    public static $compilers = __DIR__ . "/compile-config.json";
 
     public static $nrConsumers = 10;
     /**
@@ -25,7 +26,7 @@ class Config
         self::$dbuser = getenv("MARIADB_USER");
         self::$dbname = getenv("MARIADB_DATABASE");
         self::$dbpass = getenv("MARIADB_PASSWORD");
-        self::$dbhost = getenv("MARIADBHOST");
+        self::$dbhost = getenv("MARIADB_HOST");
     }
 }
 
