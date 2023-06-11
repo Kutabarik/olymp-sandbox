@@ -98,7 +98,8 @@ $consumeTask = function (string $taskId) {
         //        echo "[${$taskId}] consumer read data ".json_encode($data).PHP_EOL;
         //        sleep($consumerTimeOut);
         $execCommand = $fileManager->compileFile(
-            Config::$dataDir.$solution['user_id'].'/'.$solution['filename'],
+            Config::$dataDir.$solution['user_id'].DIRECTORY_SEPARATOR
+            .$solution['filename'],
             $solution['user_id']
         );
         $db->updateSolutionStatus($solution['id'], 2);
@@ -107,15 +108,30 @@ $consumeTask = function (string $taskId) {
         $tests = [['input' => 10, 'output' => 20]];
         list($time, $memory) = [10, 20];
         //list($time, $memory) = $db->getTaskLimits($solution['task_id']);
+
+        $curDir = "{Config::$dataDir}/{$solution['user_id']}";
+
         foreach ($tests as $test) {
             $command
-                = "olymp-sandbox -a {Config::$dataDir}{$solution['user_id']}/{$execCommand}"
+                = "olymp-sandbox -a {Config::$solutionsDir}".DIRECTORY_SEPARATOR
+                ."{$solution['user_id']}".DIRECTORY_SEPARATOR."{$execCommand}"
                 .
                 " -t {$time} -m {$memory}".
                 " -i {$test["input"]} -o {$test["output"]}";
             echo '\n';
             print_r($command);
-            exec($command, $output, $return_value);
+
+            exec(
+                "mount -t bind /usr/local/bin {$curDir}"
+            );
+            exec("mount -t bind /usr/bin {$curDir}");
+            exec("chroot {$curDir}");
+            exec($command, $output, $returnValue);
+
+            if ($returnValue !== 1) {
+                $allTestsPassed = false;
+                break;
+            }
         }
     }
 
