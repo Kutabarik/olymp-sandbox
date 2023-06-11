@@ -19,7 +19,7 @@ class ThreadManager
         Closure $produce,
         Closure $consume
     ): void {
-        echo "init" . PHP_EOL;
+        echo "init".PHP_EOL;
         self::$nrConsumers = $nrThreads;
         self::$consumerTask = $consume;
         self::$producerTask = $produce;
@@ -41,7 +41,7 @@ class ThreadManager
 
     public static function start(): void
     {
-        echo "start" . PHP_EOL;
+        echo "start".PHP_EOL;
         /**
          * in the Producer we run self::$producerTask with
          * parameter self::$nrConsumers
@@ -64,7 +64,7 @@ class ThreadManager
      */
     public static function finalize(): void
     {
-        echo "finalize" . PHP_EOL;
+        echo "finalize".PHP_EOL;
         self::$producer->close();
         foreach (self::$consumers as $consumer) {
             $consumer->close();
@@ -77,11 +77,16 @@ class ThreadManager
  * while not null and process it.
  */
 $consumeTask = function (string $taskId) {
-    include_once __DIR__ . "/Config.php";
-    include_once __DIR__ . "/FileManager.php";
-    include_once __DIR__ . "/DB.php";
+    include_once __DIR__."/Config.php";
+    include_once __DIR__."/FileManager.php";
+    include_once __DIR__."/DB.php";
 
-    $db = new DB(Config::$dbhost, Config::$dbuser, Config::$dbpass, Config::$dbname);
+    $db = new DB(
+        Config::$dbhost,
+        Config::$dbuser,
+        Config::$dbpass,
+        Config::$dbname
+    );
     $db->connect();
 
     $fileManager = new FileManager(Config::$compilers);
@@ -93,7 +98,8 @@ $consumeTask = function (string $taskId) {
         //        echo "[${$taskId}] consumer read data ".json_encode($data).PHP_EOL;
         //        sleep($consumerTimeOut);
         $execCommand = $fileManager->compileFile(
-            Config::$dataDir . $solution['user_id'] . '/' . $solution['filename']
+            Config::$dataDir.$solution['user_id'].'/'.$solution['filename'],
+            $solution['user_id']
         );
         $db->updateSolutionStatus($solution['id'], 2);
         //наверное берем из БД данные о задаче
@@ -105,7 +111,7 @@ $consumeTask = function (string $taskId) {
             $command
                 = "olymp-sandbox -a {Config::$dataDir}{$solution['user_id']}/{$execCommand}"
                 .
-                " -t {$time} -m {$memory}" .
+                " -t {$time} -m {$memory}".
                 " -i {$test["input"]} -o {$test["output"]}";
             echo '\n';
             print_r($command);
@@ -113,7 +119,7 @@ $consumeTask = function (string $taskId) {
         }
     }
 
-    echo "consumer {$taskId} stops" . PHP_EOL;
+    echo "consumer {$taskId} stops".PHP_EOL;
 };
 
 /**
@@ -121,14 +127,19 @@ $consumeTask = function (string $taskId) {
  * channel `data_channel`.
  */
 $produceTask = function (int $nrConsumers) {
-    include_once __DIR__ . "/Config.php";
-    include_once __DIR__ . "/DB.php";
+    include_once __DIR__."/Config.php";
+    include_once __DIR__."/DB.php";
 
-    $db = new DB(Config::$dbhost, Config::$dbuser, Config::$dbpass, Config::$dbname);
+    $db = new DB(
+        Config::$dbhost,
+        Config::$dbuser,
+        Config::$dbpass,
+        Config::$dbname
+    );
     $db->connect();
 
     $channel = Channel::open("data_channel");
-    echo "run producer" . PHP_EOL;
+    echo "run producer".PHP_EOL;
 
     while (true) {
         $solutions = $db->getSolutionsByStatus(0);
@@ -143,5 +154,5 @@ $produceTask = function (int $nrConsumers) {
     for ($i = 0; $i < $nrConsumers; ++$i) {
         $channel->send(null);
     }
-    echo "producer stops" . PHP_EOL;
+    echo "producer stops".PHP_EOL;
 };

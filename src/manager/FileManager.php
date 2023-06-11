@@ -1,6 +1,7 @@
 <?php
 
-include_once __DIR__ . '/LanguageConfig.php';
+include_once __DIR__.'/LanguageConfig.php';
+include_once __DIR__.'/Config.php';
 
 class FileManager
 {
@@ -16,11 +17,12 @@ class FileManager
         $this->parseConfig();
     }
 
-    public function copyAndRenameFile(string $filePath): string
+    public function copyAndRenameFile(string $filePath, int $userId): string
     {
         $fileInfo = pathinfo($filePath);
-        $newFilePath = $fileInfo['dirname'] . DIRECTORY_SEPARATOR . 'solution' . '.'
-            . $fileInfo['extension'];
+//        $newFilePath = $fileInfo['dirname'] . DIRECTORY_SEPARATOR . 'solution' . '.' . $fileInfo['extension'];
+        $newFilePath = Config::$solutionsDir.DIRECTORY_SEPARATOR.$userId
+            .DIRECTORY_SEPARATOR.'solution'.'.'.$fileInfo['extension'];
 
         if (!copy($filePath, $newFilePath)) {
             throw new Exception('Failed to copy file.');
@@ -46,14 +48,14 @@ class FileManager
         return $this->languageConfigs[$extension];
     }
 
-    public function compileFile(string $filePath): string
+    public function compileFile(string $filePath, int $userId): string
     {
         $solutionExtension = pathinfo($filePath, PATHINFO_EXTENSION);
 
         try {
-            $solutionPath = $this->copyAndRenameFile($filePath);
+            $solutionPath = $this->copyAndRenameFile($filePath, $userId);
         } catch (Exception $e) {
-            echo 'Error: ' . $e->getMessage();
+            echo 'Error: '.$e->getMessage();
         }
 
         $languageConfig = $this->getLanguageConfig($solutionExtension);

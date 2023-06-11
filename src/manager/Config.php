@@ -3,7 +3,8 @@
 class Config
 {
     public static $dataDir = "/var/www/data/user/";
-    public static $compilers = __DIR__ . "/compile-config.json";
+    public static $solutionsDir = "/data/tmp";
+    public static $compilers = __DIR__."/compile-config.json";
 
     public static $nrConsumers = 10;
     /**

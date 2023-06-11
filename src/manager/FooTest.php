@@ -1,12 +1,12 @@
 +<?php
 
-require_once 'fileManager.php';
+require_once 'FileManager.php';
 
 class FooTest
 {
     function parseTest(): void
     {
-        $manager = new FileManager('../compile-config.json');
+        $manager = new FileManager('/compile-config.json');
 
         $manager->parseConfig('c');
         echo "\n";
@@ -21,10 +21,11 @@ class FooTest
 
     function copyAndRenameFileTest(): void
     {
-        $manager = new FileManager('../compile-config.json');
+        $manager = new FileManager('compile-config.json');
 
         $manager->copyAndRenameFile(
-            "C:\\Users\\malay\\Documents\\GitHub\\olymp-sandbox\\examples\\example01\\example01.cpp"
+            "C:\\Users\\malay\\Documents\\GitHub\\olymp-sandbox\\examples\\example01\\example01.cpp",
+            22
         );
     }
 
@@ -42,4 +43,4 @@ class FooTest
 $test = new FooTest();
 //$test->parseTest();
 //$test->copyAndRenameFileTest();
-$test->compileFileTest();
+$test->copyAndRenameFileTest();
