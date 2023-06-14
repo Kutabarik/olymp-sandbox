@@ -90,6 +90,12 @@ $consumeTask = function (string $taskId) {
     echo "run consumer {$taskId}".PHP_EOL;
 
     while (($solution = $channel->recv()) != null) {
+        // compile
+        // execute
+// ------        //   chroot
+        //   sandbox < input > output
+        //   evaluate (output == pattern)
+
         //        echo "[${$taskId}] consumer read data ".json_encode($data).PHP_EOL;
         //        sleep($consumerTimeOut);
         $execCommand = $fileManager->compileFile(
@@ -112,7 +118,6 @@ $consumeTask = function (string $taskId) {
             exec($command, $output, $return_value);
         }
     }
-
     echo "consumer {$taskId} stops" . PHP_EOL;
 };
 
@@ -137,7 +142,7 @@ $produceTask = function (int $nrConsumers) {
             $channel->send($solution);
             $db->updateSolutionStatus($solution['id'], 1);
         }
-        sleep($producerTimeOut);
+        sleep(Config::$producerTimeOut);
     }
 
     for ($i = 0; $i < $nrConsumers; ++$i) {
