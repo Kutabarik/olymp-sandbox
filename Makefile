@@ -1,44 +1,90 @@
+OS=windows
 CC=g++
 CFLAGS=-c
 LDFLAGS=-pthread
 
 # dirs
 BINDIR=./bin
+OBJDIR=./obj
 SRCDIR=./src/sandbox
 TESTFILESDIR=./testfiles
+EXAMPLESDIR=./examples
+EXAMPLEAPP=testapp
 
+SOURCE1=${OS}
+SOURCE2=config
+SOURCE3=definitions
+SOURCE4=logger
+SOURCE5=process_manager
+SOURCE6=result_info
+SOURCE7=olymp-sandbox
 
-SOURCES=$(SRCDIR)/constants.cpp $(SRCDIR)/functions.cpp $(SRCDIR)/olymp-sandbox.cpp
-BINOBJ=$(BINDIR)/constants.o $(BINDIR)/functions.o $(BINDIR)/olymp-sandbox.o
+SOURCES=
+SOURCES:=$(SOURCES) $(SRCDIR)/$(SOURCE1).cpp
+SOURCES:=$(SOURCES) $(SRCDIR)/$(SOURCE2).cpp
+SOURCES:=$(SOURCES) $(SRCDIR)/$(SOURCE3).cpp
+SOURCES:=$(SOURCES) $(SRCDIR)/$(SOURCE4).cpp
+SOURCES:=$(SOURCES) $(SRCDIR)/$(SOURCE5).cpp
+SOURCES:=$(SOURCES) $(SRCDIR)/$(SOURCE6).cpp
+SOURCES:=$(SOURCES) $(SRCDIR)/$(SOURCE7).cpp
+
+BINOBJ=
+BINOBJ:=${BINOBJ} $(OBJDIR)/$(SOURCE1).o
+BINOBJ:=${BINOBJ} $(OBJDIR)/$(SOURCE2).o
+BINOBJ:=${BINOBJ} $(OBJDIR)/$(SOURCE3).o
+BINOBJ:=${BINOBJ} $(OBJDIR)/$(SOURCE4).o
+BINOBJ:=${BINOBJ} $(OBJDIR)/$(SOURCE5).o
+BINOBJ:=${BINOBJ} $(OBJDIR)/$(SOURCE6).o
+BINOBJ:=${BINOBJ} $(OBJDIR)/$(SOURCE7).o
 EXECUTABLE=olymp-sandbox
 
-all: prebuild $(SOURCES) $(EXECUTABLE)
+help:
+	@echo "make all"
+	@echo "make build"
+	@echo "make clean"
+	@echo "make install"
+	@echo "make test"
+	@echo "make testos"
+
+all: prebuild build testapp
 
 prebuild:
-	mkdir -p $(BINDIR)
+	mkdir -p $(BINDIR) $(OBJDIR)
+
+build: $(EXECUTABLE)
 
 $(EXECUTABLE): $(BINOBJ) 
 	$(CC) $(LDFLAGS) $(BINOBJ) -o $(BINDIR)/$(EXECUTABLE)
 
-$(BINDIR)/constants.o:
-	$(CC) $(CFLAGS) $(SRCDIR)/constants.cpp -o $(BINDIR)/constants.o
+$(OBJDIR)/$(SOURCE1).o:
+	$(CC) $(CFLAGS) $(SRCDIR)/$(SOURCE1).cpp -o $(OBJDIR)/$(SOURCE1).o
 
-$(BINDIR)/functions.o:
-	$(CC) $(CFLAGS) $(SRCDIR)/functions.cpp -o $(BINDIR)/functions.o
+$(OBJDIR)/$(SOURCE2).o:
+	$(CC) $(CFLAGS) $(SRCDIR)/$(SOURCE2).cpp -o $(OBJDIR)/$(SOURCE2).o
 
-$(BINDIR)/olymp-sandbox.o:
-	$(CC) $(CFLAGS) $(SRCDIR)/olymp-sandbox.cpp -o $(BINDIR)/olymp-sandbox.o
+$(OBJDIR)/$(SOURCE3).o:
+	$(CC) $(CFLAGS) $(SRCDIR)/$(SOURCE3).cpp -o $(OBJDIR)/$(SOURCE3).o
+
+$(OBJDIR)/$(SOURCE4).o:
+	$(CC) $(CFLAGS) $(SRCDIR)/$(SOURCE4).cpp -o $(OBJDIR)/$(SOURCE4).o
+
+$(OBJDIR)/$(SOURCE5).o:
+	$(CC) $(CFLAGS) $(SRCDIR)/$(SOURCE5).cpp -o $(OBJDIR)/$(SOURCE5).o
+
+$(OBJDIR)/$(SOURCE6).o:
+	$(CC) $(CFLAGS) $(SRCDIR)/$(SOURCE6).cpp -o $(OBJDIR)/$(SOURCE6).o
+
+$(OBJDIR)/$(SOURCE7).o:
+	$(CC) $(CFLAGS) $(SRCDIR)/$(SOURCE7).cpp -o $(OBJDIR)/$(SOURCE7).o
 
 clean:
-	rm -rf $(BINDIR)/*.o $(BINDIR)/*.exe
+	rm -rf $(OBJDIR)/*.o $(BINDIR)/*.exe
 
-test:
-	$(CC) $(SRCDIR)/test.cpp -o $(BINDIR)/testapp; \
-	$(BINDIR)/testapp < $(TESTFILESDIR)/input01.txt
+testapp:
+	$(CC) $(EXAMPLESDIR)/$(EXAMPLEAPP)/$(EXAMPLEAPP).cpp -o $(BINDIR)/$(EXAMPLEAPP);
 
-testos:
-	$(CC) $(SRCDIR)/testos.cpp -o $(BINDIR)/testos; \
-	$(BINDIR)/testos
+test: testapp
+	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) --memory=16m --time=1s --input=$(TESTFILESDIR)/input01.txt
 
 install: $(EXECUTABLE)
 	cp $(BINDIR)/$(EXECUTABLE) /usr/local/bin/$(EXECUTABLE)

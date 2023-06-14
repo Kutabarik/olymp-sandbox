@@ -1,57 +1,39 @@
-#include <getopt.h>
-#include <iostream>
-#include <string>
-#include <chrono>
-#include <cstdlib>
-#include <unistd.h>
+#include "definitions.hpp"
+#include "config.hpp"
+#include "result_info.hpp"
+#include "process_manager.hpp"
 
-#include "definitions.h"
+#include <iostream>
 
 int main(int argc, char **argv)
 {
-    int memory;
-    double time;
-    std::string application;
-    std::string input = "";
-    std::string output = "out.txt";
+    mc::logger logger = mc::logger::STDOUT();
+    logger.info(std::string("start ") + argv[0] + " ...");
+    mc::config config;
 
-    int result;
-    int option_index;
-
-    if (argc == 1)
-        print_usage(argv[0]);
-
-    while ((result = getopt_long(argc, argv, short_opts, long_opts, &option_index)) != -1)
+    if (argc == 1 || !config.init(argc, argv))
     {
-        switch (result)
-        {
-        case 'h':
-            print_usage(argv[0]);
-            return 0;
-            break;
-        case 'a':
-            application = optarg;
-            break;
-        case 'm':
-            memory = atoi(optarg);
-            break;
-        case 't':
-            time = atoi(optarg);
-            break;
-        case 'i':
-            input = optarg;
-            break;
-        case 'o':
-            output = optarg;
-            break;
-        default:
-            break;
-        }
+        print_usage(argv[0]);
+        return 0;
     }
+    logger.info(std::string("config.application: " + config.application));
+    logger.info(std::string("config.time: ") + std::to_string(config.time_limit));
+    logger.info(std::string("config.memory: ") + std::to_string(config.memory_limit));
+    logger.info(std::string("config.input: " + config.input));
+    logger.info(std::string("config.output: " + config.output));
 
-    std::thread th(run_task, application, input, output);
+    try
+    {
+        mc::process_manager manager(config);
+        logger.info("start app");
+        mc::result_info result = manager.start_app();
 
-    th.join();
-
+        std::cout << result.JSON() << std::endl;
+    }
+    catch (const std::exception &e)
+    {
+        logger.error(e.what());
+    }
+    logger.info("end job");
     return 0;
 }
