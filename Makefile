@@ -1,12 +1,12 @@
 OS=windows
 CC=g++
-CFLAGS=-c
+CFLAGS=-c -DWIN32
 LDFLAGS=-pthread
 
 # dirs
 BINDIR=./bin
 OBJDIR=./obj
-SRCDIR=./src/sandbox
+SRCDIR=./src
 TESTFILESDIR=./testfiles
 EXAMPLESDIR=./examples
 EXAMPLEAPP=testapp
@@ -36,6 +36,7 @@ BINOBJ:=${BINOBJ} $(OBJDIR)/$(SOURCE4).o
 BINOBJ:=${BINOBJ} $(OBJDIR)/$(SOURCE5).o
 BINOBJ:=${BINOBJ} $(OBJDIR)/$(SOURCE6).o
 BINOBJ:=${BINOBJ} $(OBJDIR)/$(SOURCE7).o
+
 EXECUTABLE=olymp-sandbox
 
 help:
@@ -84,7 +85,7 @@ testapp:
 	$(CC) $(EXAMPLESDIR)/$(EXAMPLEAPP)/$(EXAMPLEAPP).cpp -o $(BINDIR)/$(EXAMPLEAPP);
 
 test: testapp
-	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) --memory=16m --time=1s --input=$(TESTFILESDIR)/input01.txt
+	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) --memory=16m --time=1s --input=$(TESTFILESDIR)/input05.txt
 
 install: $(EXECUTABLE)
 	cp $(BINDIR)/$(EXECUTABLE) /usr/local/bin/$(EXECUTABLE)
