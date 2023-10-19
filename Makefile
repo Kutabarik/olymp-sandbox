@@ -40,14 +40,15 @@ BINOBJ:=${BINOBJ} $(OBJDIR)/$(SOURCE7).o
 EXECUTABLE=olymp-sandbox
 
 help:
-	@echo "make all"
-	@echo "make build"
-	@echo "make clean"
-	@echo "make install"
-	@echo "make test"
-	@echo "make testos"
+	@echo "make all      - build and test"
+	@echo "make build    - build app"
+	@echo "make clean    - remove binary and object files"
+	@echo "make install  - install app in environment"
+	@echo "make pre-test - compile test application"
+	@echo "make test     - run tests"
+	@echo "make test-all - compile test app and run tests"
 
-all: prebuild build testapp
+all: prebuild clean build pre-test test
 
 prebuild:
 	mkdir -p $(BINDIR) $(OBJDIR)
@@ -81,11 +82,22 @@ $(OBJDIR)/$(SOURCE7).o:
 clean:
 	rm -rf $(OBJDIR)/*.o $(BINDIR)/*.exe
 
-testapp:
-	$(CC) $(EXAMPLESDIR)/$(EXAMPLEAPP)/$(EXAMPLEAPP).cpp -o $(BINDIR)/$(EXAMPLEAPP);
+pre-test:
+	$(CC) $(EXAMPLESDIR)/$(EXAMPLEAPP)/$(EXAMPLEAPP).cpp -o $(BINDIR)/$(EXAMPLEAPP)
 
-test: testapp
+test:
+	@echo "--- test successful case ---"
+	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) --memory=16000 --time=1000 --input=$(TESTFILESDIR)/input01.txt
+	@echo "--- test negative time limit case ---"
+	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) --memory=16000 --time=1000 --input=$(TESTFILESDIR)/input02.txt
+	@echo "--- test negative memory limit  ---"
+	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) --memory=16000 --time=1000 --input=$(TESTFILESDIR)/input03.txt
+	@echo "--- test short opt case ---"
+	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) -m 16000 -t 1000 --input=$(TESTFILESDIR)/input04.txt
+	@echo "--- test conversion limits case ---"
 	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) --memory=16m --time=1s --input=$(TESTFILESDIR)/input05.txt
+
+test-all: pre-test test
 
 install: $(EXECUTABLE)
 	cp $(BINDIR)/$(EXECUTABLE) /usr/local/bin/$(EXECUTABLE)

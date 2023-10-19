@@ -16,11 +16,14 @@ int main(int argc, char **argv)
         print_usage(argv[0]);
         return 0;
     }
+    logger.info(std::string(" ---------------------------------------- "));
     logger.info(std::string("config.application: " + config.application));
     logger.info(std::string("config.time: ") + std::to_string(config.time_limit));
     logger.info(std::string("config.memory: ") + std::to_string(config.memory_limit));
     logger.info(std::string("config.input: " + config.input));
     logger.info(std::string("config.output: " + config.output));
+    logger.info(std::string("start job"));
+    logger.info(std::string(" ---------------------------------------- "));
 
     try
     {
@@ -29,6 +32,7 @@ int main(int argc, char **argv)
         mc::result_info result = manager.start_app();
 
         std::cout << result.JSON() << std::endl;
+        logger.info("end app");
     }
     catch (const std::exception &e)
     {

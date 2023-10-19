@@ -17,13 +17,14 @@ namespace mc
     {
         enum STATUS : uint8_t
         {
+            UNKNOWN,
             OK,
             TIME_LIMIT,
             MEMORY_LIMIT,
             RUNTIME_ERROR
         };
 
-        STATUS status_code;
+        STATUS status_code = STATUS::UNKNOWN;
         mc::config config;
 
         std::string JSON() const;
