@@ -6,7 +6,7 @@
 
 #include "definitions.hpp"
 
-const char *short_opts = "a:i:o:h:t:m";
+const char *short_opts = "a:i:o:h:t:m:";
 const struct option long_opts[] = {
     {"app", required_argument, 0, 'a'},
     {"memory", required_argument, 0, 'm'},
