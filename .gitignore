@@ -2,6 +2,7 @@
 bin/
 gen/
 out/
+obj/
 
 ##### TMP files
 # Dump file
@@ -65,3 +66,12 @@ nbdist/
 *.exe
 *.out
 *.app
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+.ninja_deps
+.ninja_log
+build.ninja

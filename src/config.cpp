@@ -17,7 +17,6 @@ namespace mc
             switch (result)
             {
             case 'h':
-                print_usage(argv[0]);
                 return false;
                 break;
             case 'a':
