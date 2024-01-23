@@ -75,3 +75,7 @@ Makefile
 .ninja_deps
 .ninja_log
 build.ninja
+
+# PVS Studio
+.PVS-Studio/
+*.PVS-Studio.dfo

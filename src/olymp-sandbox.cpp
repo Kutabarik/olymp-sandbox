@@ -4,16 +4,18 @@
 #include "process_manager.hpp"
 
 #include <iostream>
+#include <filesystem>
 
 int main(int argc, char **argv)
 {
     mc::logger logger = mc::logger::STDOUT();
-    logger.info(std::string("start ") + argv[0] + " ...");
+    std::string appname { std::filesystem::path(argv[0]).filename().generic_string()};
+    logger.info(std::string("start ") + appname + " ...");
     mc::config config;
 
     if (argc == 1 || !config.init(argc, argv))
     {
-        print_usage(argv[0]);
+        print_usage(appname);
         return 0;
     }
     logger.info(std::string(" ---------------------------------------- "));

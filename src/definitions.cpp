@@ -6,7 +6,7 @@
 
 #include "definitions.hpp"
 
-const char *short_opts = "a:i:o:h:t:m:";
+const char *short_opts = "a:m:t:i:o:h";
 const struct option long_opts[] = {
     {"app", required_argument, 0, 'a'},
     {"memory", required_argument, 0, 'm'},
@@ -16,8 +16,9 @@ const struct option long_opts[] = {
     {"help", no_argument, 0, 'h'},
     {0, 0, 0, 0}};
 
-void print_usage(const std::string appname)
+void print_usage(const std::string& appname)
 {
+
     std::cout << "Usage:" << std::endl;
     std::cout << "\t" << appname << " --help | -h" << std::endl;
     std::cout << "\t" << appname << " -a <app> -t <time> -m <memory> -i <in.file> -o <outfile>" << std::endl;
@@ -30,18 +31,18 @@ void print_usage(const std::string appname)
     std::cout << "\to | output\t- output data file for application" << std::endl;
 }
 
-std::string get_measure(std::string value) {
+std::string get_measure(const std::string& value) {
     size_t index = value.size() - 1;
     while(!isdigit(value.at(index))) {
         --index;
     }
     if(index == value.size() - 1) {
-        return std::string("");
+        return std::string();
     }
     return value.substr(index + 1);
 }
 
-size_t get_bytes(std::string memory) {
+size_t get_bytes(const std::string& memory) {
     std::map<std::string, std::size_t> table = {
         {std::string("b"), 1ul},
         {std::string("B"), 1ul},
@@ -58,7 +59,7 @@ size_t get_bytes(std::string memory) {
     return value * table[measure];
 }
 
-size_t get_milliseconds(std::string time) {
+size_t get_milliseconds(const std::string& time) {
     std::map<std::string, std::size_t> table = {
         {std::string("ms"), 1ul},
         {std::string("MS"), 1ul},

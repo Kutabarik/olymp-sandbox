@@ -9,9 +9,9 @@
 // ----------------------------------------------------------------
 std::int64_t get_process_memory(process_id_t pid);
 process_id_t start_process(
-    std::string filename, 
-    std::string input_file, 
-    std::string output_file);
+    const std::string& filename, 
+    const std::string& input_file, 
+    const std::string& output_file);
 bool is_up_process(process_id_t pid);
 bool stop_process(process_id_t pid);
 // ----------------------------------------------------------------
