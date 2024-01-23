@@ -17,7 +17,7 @@ This program is designed to organize programming Olympiads and helps automate th
 
 ## Build
 
-The project has simple `Makefile`. For starting, clone project, switch to the project directory and make it.
+The project has simple `Makefile.msys`. For starting, clone project, switch to the project directory and make it.
 
 Make options:
 
@@ -35,20 +35,22 @@ git clone https://github.com/Kutabarik/olymp-sandbox.git
 
 cd olymp-sandbox
 
-make build
+make -f Makefile.msys build
 ```
 
 You can run tests:
 
 ```bash
-make test 
+make -f Makefile.msys test 
 ```
 
 Or clean project:
 
+```bash
+make -f Makefile.msys clean 
 ```
-make clean 
-```
+
+You can also use cmake tool for build.
 
 # Usage
 
