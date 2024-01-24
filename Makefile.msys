@@ -50,33 +50,33 @@ help:
 
 all: prebuild clean build pre-test test
 
-prebuild:
+prebuild: $(BINDIR) $(OBJDIR)
 	mkdir -p $(BINDIR) $(OBJDIR)
 
-build: $(EXECUTABLE)
+build: prebuild $(EXECUTABLE)
 
 $(EXECUTABLE): $(BINOBJ) 
 	$(CC) $(LDFLAGS) $(BINOBJ) -o $(BINDIR)/$(EXECUTABLE)
 
-$(OBJDIR)/$(SOURCE1).o:
+$(OBJDIR)/$(SOURCE1).o: $(SRCDIR)/$(SOURCE1).cpp
 	$(CC) $(CFLAGS) $(SRCDIR)/$(SOURCE1).cpp -o $(OBJDIR)/$(SOURCE1).o
 
-$(OBJDIR)/$(SOURCE2).o:
+$(OBJDIR)/$(SOURCE2).o: $(SRCDIR)/$(SOURCE2).cpp
 	$(CC) $(CFLAGS) $(SRCDIR)/$(SOURCE2).cpp -o $(OBJDIR)/$(SOURCE2).o
 
-$(OBJDIR)/$(SOURCE3).o:
+$(OBJDIR)/$(SOURCE3).o: $(SRCDIR)/$(SOURCE3).cpp
 	$(CC) $(CFLAGS) $(SRCDIR)/$(SOURCE3).cpp -o $(OBJDIR)/$(SOURCE3).o
 
-$(OBJDIR)/$(SOURCE4).o:
+$(OBJDIR)/$(SOURCE4).o: $(SRCDIR)/$(SOURCE4).cpp
 	$(CC) $(CFLAGS) $(SRCDIR)/$(SOURCE4).cpp -o $(OBJDIR)/$(SOURCE4).o
 
-$(OBJDIR)/$(SOURCE5).o:
+$(OBJDIR)/$(SOURCE5).o: $(SRCDIR)/$(SOURCE5).cpp
 	$(CC) $(CFLAGS) $(SRCDIR)/$(SOURCE5).cpp -o $(OBJDIR)/$(SOURCE5).o
 
-$(OBJDIR)/$(SOURCE6).o:
+$(OBJDIR)/$(SOURCE6).o: $(SRCDIR)/$(SOURCE6).cpp
 	$(CC) $(CFLAGS) $(SRCDIR)/$(SOURCE6).cpp -o $(OBJDIR)/$(SOURCE6).o
 
-$(OBJDIR)/$(SOURCE7).o:
+$(OBJDIR)/$(SOURCE7).o: $(SRCDIR)/$(SOURCE7).cpp
 	$(CC) $(CFLAGS) $(SRCDIR)/$(SOURCE7).cpp -o $(OBJDIR)/$(SOURCE7).o
 
 clean:
@@ -85,7 +85,7 @@ clean:
 pre-test:
 	$(CC) $(EXAMPLESDIR)/$(EXAMPLEAPP)/$(EXAMPLEAPP).cpp -o $(BINDIR)/$(EXAMPLEAPP)
 
-test:
+test: $(BINDIR)/$(EXECUTABLE) $(BINDIR)/$(EXAMPLEAPP)
 	@echo "--- test successful case ---"
 	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) --memory=16000 --time=1000 --input=$(TESTFILESDIR)/input01.txt
 	@echo "--- test negative time limit case ---"

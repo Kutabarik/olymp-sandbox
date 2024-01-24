@@ -19,9 +19,9 @@ std::int64_t get_process_memory(HANDLE pid)
 }
 
 HANDLE start_process(
-    std::string filename,
-    std::string input_file,
-    std::string output_file)
+    const std::string& filename,
+    const std::string& input_file,
+    const std::string& output_file)
 {
     PROCESS_INFORMATION piProcInfo;
     STARTUPINFO siStartInfo;

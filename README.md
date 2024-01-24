@@ -10,35 +10,61 @@ The results of testing participants' solutions are stored in a database, and par
 This program is designed to organize programming Olympiads and helps automate the process of testing participants' solutions. It allows you to save time and effort of the organizers, and also ensures the accuracy and reliability of testing.
 
 ## Project requirements
-- gcc version 12.2
-- PHP 8.1.
+
+- gcc >= 12.2
 - make
 - ...
 
-## How to install
-```
+## Build
+
+The project has simple `Makefile.msys`. For starting, clone project, switch to the project directory and make it.
+
+Make options:
+
+- `make`          - show help
+- `make all`      - build and test
+- `make build`    - build app
+- `make clean`    - remove binary and object files
+- `make install`  - install app in environment
+- `make pre-test` - compile test application
+- `make test`     - run tests
+- `make test-all` - compile test app and run tests
+
+```bash
 git clone https://github.com/Kutabarik/olymp-sandbox.git
 
 cd olymp-sandbox
 
-make
+make -f Makefile.msys build
 ```
 
-## How to use
-run tests
-```
-make test 
+You can run tests:
+
+```bash
+make -f Makefile.msys test 
 ```
 
-delete all bin files
-```
-make clean 
+Or clean project:
+
+```bash
+make -f Makefile.msys clean 
 ```
 
-# cpp file usage
-```c++
-Usage:
-        \bin\olymp-sandbox.exe --help | -h
-        \bin\olymp-sandbox.exe -a <app> -t <time> -m <memory> -i <in.file> -o <outfile>
-        \bin\olymp-sandbox.exe --app=<app> --time=<time> --memory=<memory> --input=<in.file> --output=<outfile>
+You can also use cmake tool for build.
+
+# Usage
+
+In the `bin` directory `olymp-sandbox` application will be created, this application supports the following command line  (short and long) keys:
+
+- `h` | `help`        - help message
+- `a` | `app`         - name of managed application
+- `t` | `time`        - max execution time, supported suffixes: milliseconds (ms, default) or seconds (s) or minutes (m)    
+- `m` | `memory`      - max memory usage, supported prefixes: bytes (b, default), kilobytes (k) or megabytes (m)
+- `i` | `input`       - input data file for application
+- `o` | `output`      - output data file for application
+
+Usage sample:
+
+```bash
+olymp-sandbox -a /path/to/app -t 1s -m 16m -i /path/to/test/01-input.txt -o path/to/test/01-output.txt
 ```

@@ -34,10 +34,10 @@ extern const option long_opts[];
  *
  */
 
-void print_usage(const std::string appname);
-std::string get_measure(std::string);
-size_t get_bytes(std::string memory);
-size_t get_milliseconds(std::string time);
+void print_usage(const std::string& appname);
+std::string get_measure(const std::string& value);
+size_t get_bytes(const std::string& memory);
+size_t get_milliseconds(const std::string& time);
 uint64_t get_current_time();
 
 

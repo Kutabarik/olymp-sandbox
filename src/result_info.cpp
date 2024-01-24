@@ -13,7 +13,7 @@ namespace mc
         {result_info::RUNTIME_ERROR, "runtime error"}
     };
 
-    std::ostream& operator << (std::ostream& out, const result_info::STATUS& p) {
+    std::ostream& operator << (std::ostream& out, result_info::STATUS p) {
         out << status.at(p);
         return out;
     }
