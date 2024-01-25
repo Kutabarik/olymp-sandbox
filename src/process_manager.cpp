@@ -83,7 +83,7 @@ namespace mc
 
     void process_manager::close_process(process_id_t pid) const
     {
-        close_process(pid);
+        ::stop_process(pid);
     }
 
     bool process_manager::is_memory_limit(process_id_t pid)

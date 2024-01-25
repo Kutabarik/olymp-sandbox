@@ -18,6 +18,6 @@ int main()
 
     std::cout << "done after " << timeoutInMs << " ms." << std::endl;
 
-    delete allocatedMemory;
+    delete []allocatedMemory;
     return 0;
 }
