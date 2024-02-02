@@ -46,16 +46,15 @@ help:
 	@echo "make install  - install app in environment"
 	@echo "make pre-test - compile test application"
 	@echo "make test     - run tests"
-	@echo "make test-all - compile test app and run tests"
 
-all: prebuild clean build pre-test test
+all: prebuild clean build test
 
 prebuild: $(BINDIR) $(OBJDIR)
 	mkdir -p $(BINDIR) $(OBJDIR)
 
-build: prebuild $(EXECUTABLE)
+build: prebuild $(BINDIR)/$(EXECUTABLE)
 
-$(EXECUTABLE): $(BINOBJ) 
+$(BINDIR)/$(EXECUTABLE): $(BINOBJ) 
 	$(CC) $(LDFLAGS) $(BINOBJ) -o $(BINDIR)/$(EXECUTABLE)
 
 $(OBJDIR)/$(SOURCE1).o: $(SRCDIR)/$(SOURCE1).cpp
@@ -82,8 +81,10 @@ $(OBJDIR)/$(SOURCE7).o: $(SRCDIR)/$(SOURCE7).cpp
 clean:
 	rm -rf $(OBJDIR)/*.o $(BINDIR)/*.exe
 
-pre-test:
+$(BINDIR)/$(EXAMPLEAPP):
 	$(CC) $(EXAMPLESDIR)/$(EXAMPLEAPP)/$(EXAMPLEAPP).cpp -o $(BINDIR)/$(EXAMPLEAPP)
+
+pre-test: $(BINDIR)/$(EXAMPLEAPP)
 
 test: $(BINDIR)/$(EXECUTABLE) $(BINDIR)/$(EXAMPLEAPP)
 	@echo "--- test successful case ---"
@@ -97,7 +98,5 @@ test: $(BINDIR)/$(EXECUTABLE) $(BINDIR)/$(EXAMPLEAPP)
 	@echo "--- test conversion limits case ---"
 	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) --memory=16m --time=1s --input=$(TESTFILESDIR)/input05.txt
 
-test-all: pre-test test
-
-install: $(EXECUTABLE)
+install: $(BINDIR)/$(EXECUTABLE)
 	cp $(BINDIR)/$(EXECUTABLE) /usr/local/bin/$(EXECUTABLE)

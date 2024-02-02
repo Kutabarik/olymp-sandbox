@@ -19,3 +19,6 @@ set(SOURCE src/config.cpp
 set(CMAKE_BINARY_DIR build)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 add_executable(olymp-sandbox ${SOURCE})
+
+# testapp
+add_executable(testapp examples/testapp/testapp.cpp)
