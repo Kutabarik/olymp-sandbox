@@ -28,7 +28,9 @@ set(SOURCE src/config.cpp
 
 # set(CMAKE_BINARY_DIR build)
 # set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-add_executable(olymp-sandbox ${SOURCE})
+add_executable(sandbox ${SOURCE})
+target_link_libraries(sandbox -static)
+target_link_libraries(sandbox stdc++fs)
 
 # testapp
 add_executable(testapp examples/testapp/testapp.cpp)

@@ -1,6 +1,7 @@
 # olymp-sandbox
 
 ## About
+
 This project is a program for organizing programming Olympiads. This program allows participants to send their solutions as files to the server, where a PHP script compiles them (if necessary) into an executable file.
 
 Next, the C++ program runs the executable file in a separate thread and runs it through predefined tests. Each test verifies the correctness of the input and output data under the constraints set by the condition in execution time and memory consumption.
@@ -12,10 +13,12 @@ This program is designed to organize programming Olympiads and helps automate th
 ## Project requirements
 
 - gcc >= 12.2
-- make
+- cmake >= 3.10.0
 - ...
 
 ## Build
+
+### makefile (for MSYS)
 
 The project has simple `Makefile.msys`. For starting, clone project, switch to the project directory and make it.
 
@@ -50,21 +53,34 @@ Or clean project:
 make -f Makefile.msys clean 
 ```
 
-You can also use cmake tool for build.
+### cmake
 
-# Usage
+You can also use cmake tool for build. Recomended scenario is:
 
-In the `bin` directory `olymp-sandbox` application will be created, this application supports the following command line  (short and long) keys:
+```bash
+git clone https://github.com/Kutabarik/olymp-sandbox.git
 
-- `h` | `help`        - help message
-- `a` | `app`         - name of managed application
-- `t` | `time`        - max execution time, supported suffixes: milliseconds (ms, default) or seconds (s) or minutes (m)    
-- `m` | `memory`      - max memory usage, supported prefixes: bytes (b, default), kilobytes (k) or megabytes (m)
-- `i` | `input`       - input data file for application
-- `o` | `output`      - output data file for application
+cd olymp-sandbox
+mkdir build
+cd build
+
+cmake ..
+make
+```
+
+## Usage
+
+In the `bin` directory `olymp-sandbox` application will be created, this application supports the following command line keys:
+
+- `help`        - help message
+- `app`         - name of managed application
+- `time`        - max execution time, supported suffixes: milliseconds (ms, default) or seconds (s) or minutes (m)
+- `memory`      - max memory usage, supported prefixes: bytes (b, default), kilobytes (k) or megabytes (m)
+- `input`       - input data file for application
+- `output`      - output data file for application
 
 Usage sample:
 
 ```bash
-olymp-sandbox -a /path/to/app -t 1s -m 16m -i /path/to/test/01-input.txt -o path/to/test/01-output.txt
+olymp-sandbox --app=/path/to/app --time=1s --memory=16m --input=/path/to/test/01-input.txt --output=path/to/test/01-output.txt
 ```

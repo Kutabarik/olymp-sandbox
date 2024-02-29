@@ -93,8 +93,8 @@ test: $(BINDIR)/$(EXECUTABLE) $(BINDIR)/$(EXAMPLEAPP)
 	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) --memory=16000 --time=1000 --input=$(TESTFILESDIR)/input02.txt
 	@echo "--- test negative memory limit  ---"
 	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) --memory=16000 --time=1000 --input=$(TESTFILESDIR)/input03.txt
-	@echo "--- test short opt case ---"
-	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) -m 16000 -t 1000 --input=$(TESTFILESDIR)/input04.txt
+	@echo "--- test just another test ---"
+	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) --memory=16000 --time=1000 --input=$(TESTFILESDIR)/input04.txt
 	@echo "--- test conversion limits case ---"
 	$(BINDIR)/$(EXECUTABLE) --app=$(BINDIR)/$(EXAMPLEAPP) --memory=16m --time=1s --input=$(TESTFILESDIR)/input05.txt
 
