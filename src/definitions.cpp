@@ -99,6 +99,12 @@ void build_keys(keymap &keys, int argc, char **argv)
         tmp = aux.find('=');
         if (tmp == aux.npos)
         {
+            auto tmp = aux.substr(2);
+            if(keys.count(tmp) == 0)
+            {
+                continue;
+            }
+            keys[tmp].first = tmp;
             continue;
         }
         key = aux.substr(2, tmp - 2);

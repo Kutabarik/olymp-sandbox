@@ -13,6 +13,11 @@ namespace mc
 
         build_keys(options, argc, argv);
 
+        if(options["help"].first.size())
+        {
+            return false;
+        }
+
         this->application = options["app"].first;
         this->memory_limit = get_bytes(options["memory"].first);
         this->time_limit = get_milliseconds(options["time"].first);
