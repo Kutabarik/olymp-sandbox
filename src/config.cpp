@@ -2,7 +2,7 @@
 #include "definitions.hpp"
 #include "logger.hpp"
 
-#include <getopt.h>
+extern keymap options;
 
 namespace mc
 {
@@ -10,41 +10,20 @@ namespace mc
     {
         mc::logger logger = mc::logger::STDOUT();
 
-        int result;
-        int option_index;
-        while ((result = getopt_long(argc, argv, short_opts, long_opts, &option_index)) != -1)
+
+        build_keys(options, argc, argv);
+
+        if(options["help"].first.size())
         {
-            switch (result)
-            {
-            case 'h':
-                return false;
-                break;
-            case 'a':
-                logger.info(std::string("app = ") + std::string(optarg));
-                this->application = std::string(optarg);
-                break;
-            case 'm':
-                logger.info(std::string("memory = ") + std::string(optarg));
-                this->memory_limit = get_bytes(optarg);
-                logger.info(std::string("memory converted = ") + std::to_string(this->memory_limit));
-                break;
-            case 't':
-                logger.info(std::string("time = ") + std::string(optarg));
-                this->time_limit = get_milliseconds(optarg);
-                logger.info(std::string("time converted = ") + std::to_string(this->time_limit));
-                break;
-            case 'i':
-                logger.info(std::string("input = ") + std::string(optarg));
-                this->input = std::string(optarg);
-                break;
-            case 'o':
-                logger.info(std::string("output = ") + std::string(optarg));
-                this->output = std::string(optarg);
-                break;
-            default:
-                break;
-            }
+            return false;
         }
+
+        this->application = options["app"].first;
+        this->memory_limit = get_bytes(options["memory"].first);
+        this->time_limit = get_milliseconds(options["time"].first);
+        this->input = options["input"].first;
+        this->output = options["output"].first;
+
         return true;
     }
 

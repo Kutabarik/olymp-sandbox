@@ -39,9 +39,9 @@ std::int64_t get_process_memory(pid_t pid)
 }
 
 pid_t start_process(
-    std::string filename,
-    std::string input_file,
-    std::string output_file)
+    const std::string& filename,
+    const std::string& input_file,
+    const std::string& output_file)
 {
     pid_t pid = fork();
     // parent process obtains pid of child process
