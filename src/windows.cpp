@@ -117,9 +117,6 @@ HANDLE start_process(
         throw std::runtime_error("ResumeThread failed: " + std::to_string(GetLastError()));
     }
 
-    hThread.~HandleRAII();
-    hInputFile.~HandleRAII();
-    hOutputFile.~HandleRAII();
     hJob.release();
 
     return hProcess.release();
