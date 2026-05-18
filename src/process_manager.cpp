@@ -87,6 +87,7 @@ namespace mc
             int64_t tmp_mem = get_process_memory(pid);
             if (tmp_mem < 0) {
                 logger.error("Failed to get process memory");
+                result.status_code = mc::result_info::STATUS::RUNTIME_ERROR;
                 break;
             }
             if (tmp_mem > max_memory)
