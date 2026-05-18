@@ -16,6 +16,13 @@ namespace mc
         }
 
         this->application = options["app"].first;
+        
+        // Validate mandatory argument
+        if(this->application.empty())
+        {
+            return false;
+        }
+
         this->memory_limit = get_bytes(options["memory"].first);
         this->time_limit = get_milliseconds(options["time"].first);
         this->input = options["input"].first;
@@ -25,10 +32,10 @@ namespace mc
     }
 
     config::config(const config &object) :  application(object.application),
-                                            memory_limit(object.memory_limit),
-                                            time_limit(object.time_limit),
                                             input(object.input),
-                                            output(object.output)
+                                            output(object.output),
+                                            memory_limit(object.memory_limit),
+                                            time_limit(object.time_limit)
     {
     }
 
