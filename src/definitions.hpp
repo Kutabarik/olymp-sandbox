@@ -26,6 +26,8 @@
 
 typedef std::map<std::string, std::pair<std::string, std::string>> keymap;
 
+extern keymap options;
+
 /**
  * @brief constants
  *

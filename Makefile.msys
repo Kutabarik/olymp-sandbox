@@ -4,11 +4,11 @@ CFLAGS=-c -DWIN32
 LDFLAGS=-pthread
 
 # dirs
-BINDIR=./bin
-OBJDIR=./obj
-SRCDIR=./src
-TESTFILESDIR=./testfiles
-EXAMPLESDIR=./examples
+BINDIR=bin
+OBJDIR=obj
+SRCDIR=src
+TESTFILESDIR=testfiles
+EXAMPLESDIR=examples
 EXAMPLEAPP=testapp
 
 SOURCE1=${OS}
@@ -50,7 +50,7 @@ help:
 all: prebuild clean build test
 
 prebuild: $(BINDIR) $(OBJDIR)
-	mkdir -p $(BINDIR) $(OBJDIR)
+	rem mkdir $(BINDIR) $(OBJDIR)
 
 build: prebuild $(BINDIR)/$(EXECUTABLE)
 

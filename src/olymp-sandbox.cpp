@@ -15,8 +15,9 @@ int main(int argc, char **argv)
 
     if (argc == 1 || !config.init(argc, argv))
     {
+        logger.error("Invalid arguments or failed to initialize config.");
         print_usage(appname);
-        return 0;
+        return 1;
     }
     logger.info(std::string(" ---------------------------------------- "));
     logger.info(std::string("config.application: " + config.application));
@@ -27,6 +28,19 @@ int main(int argc, char **argv)
     logger.info(std::string("start job"));
     logger.info(std::string(" ---------------------------------------- "));
 
+    // check if application exists
+    if (!std::filesystem::exists(config.application))
+    {
+        logger.error("Application file does not exist: " + config.application);
+        return 1;
+    }
+    // check if input file exists
+    if (!std::filesystem::exists(config.input))
+    {
+        logger.error("Input file does not exist: " + config.input);
+        return 1;
+    }
+    int exit_code = 0;
     try
     {
         mc::process_manager manager(config);
@@ -38,8 +52,11 @@ int main(int argc, char **argv)
     }
     catch (const std::exception &e)
     {
-        logger.error(e.what());
+        logger.error(std::string("Exception: ") + e.what());
+        exit_code = 2;
     }
     logger.info("end job");
-    return 0;
+    logger.info("Current directory: " + std::filesystem::current_path().string());
+    logger.info("Absolute input path: " + std::filesystem::absolute(config.input).string());
+    return exit_code;
 }

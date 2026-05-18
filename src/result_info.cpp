@@ -24,9 +24,9 @@ namespace mc
         ss << "{"
             << "\"status_code\": \"" << this->status_code << "\", "
             << "\"application\": \"" << this->config.application << "\", "
-            << "\"input\": \"" << this->config.input << "\","
-            << "\"output\": \"" << this->config.output << "\","
-            << "\"memory\": \"" << this->config.memory_limit << "\","
+            << "\"input\": \"" << this->config.input << "\", "
+            << "\"output\": \"" << this->config.output << "\", "
+            << "\"memory\": \"" << this->config.memory_limit << "\", "
             << "\"time\": \"" << this->config.time_limit << "\""
             << "}";
         return ss.str();

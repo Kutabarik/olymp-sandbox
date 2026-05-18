@@ -6,21 +6,21 @@
 namespace mc {
     class logger {
     public:
-        enum MESSAGE_TYPE {
-            _INFO = 0,
-            _DEBUG,
-            _WARNING,
-            _ERROR,
+        enum class MESSAGE_TYPE {
+            _INFO_ = 0,
+            _DEBUG_,
+            _WARNING_,
+            _ERROR_
         };
     private:
         std::ostream* out;
     public:
         logger(const std::string& filename);
-        void write(const std::string& message, MESSAGE_TYPE type);
-        void info(const std::string& message);
-        void debug(const std::string& message);
-        void warn(const std::string& message);
-        void error(const std::string& message);
+        void write(const std::string& message, MESSAGE_TYPE type) const;
+        void info(const std::string& message) const;
+        void debug(const std::string& message) const;
+        void warn(const std::string& message) const;
+        void error(const std::string& message) const;
 
         static logger STDOUT();
         static logger STDERR();

@@ -109,7 +109,7 @@ void build_keys(keymap &keys, int argc, char **argv)
         }
         key = aux.substr(2, tmp - 2);
         value = aux.substr(tmp + 1, aux.size() - tmp - 1);
-        // std::cout << "[debug] key = " << key << ", value = " << value << std::endl;
+        std::cout << "[debug] key = " << key << ", value = " << value << std::endl;
         if (keys.count(key) == 0)
         {
             continue;

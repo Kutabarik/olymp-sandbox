@@ -17,7 +17,6 @@ else()
    set(TARGET linux)
 endif(WIN32)
 
-    
 set(SOURCE src/config.cpp
     src/definitions.cpp
     src/${TARGET}.cpp
@@ -26,11 +25,47 @@ set(SOURCE src/config.cpp
     src/process_manager.cpp
     src/result_info.cpp)
 
-# set(CMAKE_BINARY_DIR build)
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 add_executable(sandbox ${SOURCE})
 target_link_libraries(sandbox -static)
 target_link_libraries(sandbox stdc++fs)
 
 # testapp
 add_executable(testapp examples/testapp/testapp.cpp)
+
+# ============================================================
+# Testing with Catch2
+# ============================================================
+include(FetchContent)
+FetchContent_Declare(
+    catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+    GIT_TAG v3.7.1
+)
+FetchContent_MakeAvailable(catch2)
+
+include(Catch)
+
+enable_testing()
+
+# Test sources
+set(TEST_SOURCES
+    tests/test_config.cpp
+    tests/test_definitions.cpp
+    tests/test_result_info.cpp
+)
+
+# Source files needed for tests
+set(TEST_LIB_SOURCES
+    src/config.cpp
+    src/definitions.cpp
+    src/logger.cpp
+    src/result_info.cpp
+)
+
+add_executable(run_tests ${TEST_SOURCES} ${TEST_LIB_SOURCES})
+target_include_directories(run_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(run_tests PRIVATE Catch2::Catch2WithMain)
+target_compile_options(run_tests PRIVATE -Wall -Wextra -Wpedantic)
+
+# Register tests
+catch_discover_tests(run_tests)
