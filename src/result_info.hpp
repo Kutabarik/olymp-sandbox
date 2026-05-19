@@ -3,8 +3,10 @@
 
 #include "config.hpp"
 
-#include <string>
+#include <cstddef>
 #include <cstdint>
+#include <iosfwd>
+#include <string>
 
 namespace mc
 {
@@ -31,6 +33,8 @@ namespace mc
 
         std::string JSON() const;
     };
+
+    std::ostream& operator<<(std::ostream& out, result_info::STATUS p);
 }
 
 #endif
