@@ -5,14 +5,11 @@
 
 namespace
 {
+    const auto default_options = options;
+
     void reset_options()
     {
-        options["app"] = {"", "path to application"};
-        options["time"] = {"1s", "time limit"};
-        options["memory"] = {"16M", "memory limit"};
-        options["input"] = {"input.txt", "input file"};
-        options["output"] = {"output.txt", "output file"};
-        options["help"] = {"", "help message"};
+        options = default_options;
     }
 }
 
