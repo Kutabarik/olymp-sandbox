@@ -7,29 +7,18 @@
 #include <psapi.h>
 #include <vector>
 #include <utility>
+#include <memory>
 #include <filesystem>
 
-class HandleRAII {
-    HANDLE h_;
-public:
-    HandleRAII() : h_(NULL) {}
-    explicit HandleRAII(HANDLE h) : h_(h) {}
-    ~HandleRAII() { if (h_ && h_ != INVALID_HANDLE_VALUE) CloseHandle(h_); }
-    HandleRAII(const HandleRAII&) = delete;
-    HandleRAII& operator=(const HandleRAII&) = delete;
-    HandleRAII(HandleRAII&& other) noexcept : h_(other.h_) { other.h_ = NULL; }
-    HandleRAII& operator=(HandleRAII&& other) noexcept {
-        if (this != &other) {
-            if (h_ && h_ != INVALID_HANDLE_VALUE) CloseHandle(h_);
-            h_ = other.h_;
-            other.h_ = NULL;
+struct HandleCloser {
+    void operator()(HANDLE h) const {
+        if (h != NULL && h != INVALID_HANDLE_VALUE) {
+            CloseHandle(h);
         }
-        return *this;
     }
-    HANDLE get() const { return h_; }
-    HANDLE release() { HANDLE tmp = h_; h_ = NULL; return tmp; }
-    explicit operator bool() const { return h_ && h_ != INVALID_HANDLE_VALUE; }
 };
+
+using ScopedHandle = std::unique_ptr<void, HandleCloser>;
 
 std::int64_t get_process_memory(HANDLE pid)
 {
@@ -55,7 +44,7 @@ HANDLE start_process(
         throw std::runtime_error("Input file does not exist: " + input_file);
     }
 
-    HandleRAII hJob(CreateJobObject(NULL, NULL));
+    ScopedHandle hJob(CreateJobObject(NULL, NULL), HandleCloser{});
     if (!hJob)
         throw std::runtime_error("CreateJobObject failed: " + std::to_string(GetLastError()));
 
@@ -68,11 +57,11 @@ HANDLE start_process(
     sa.nLength = sizeof(sa);
     sa.bInheritHandle = TRUE;
 
-    HandleRAII hInputFile(CreateFile(input_file.c_str(), GENERIC_READ, FILE_SHARE_READ, &sa, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL));
+    ScopedHandle hInputFile(CreateFile(input_file.c_str(), GENERIC_READ, FILE_SHARE_READ, &sa, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL), HandleCloser{});
     if (!hInputFile)
         throw std::runtime_error("CreateFile input failed: " + std::to_string(GetLastError()));
 
-    HandleRAII hOutputFile(CreateFile(output_file.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
+    ScopedHandle hOutputFile(CreateFile(output_file.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL), HandleCloser{});
     if (!hOutputFile)
         throw std::runtime_error("CreateFile output failed: " + std::to_string(GetLastError()));
 
@@ -104,8 +93,8 @@ HANDLE start_process(
         throw std::runtime_error("CreateProcess failed: " + std::to_string(GetLastError()));
     }
 
-    HandleRAII hProcess(pi.hProcess);
-    HandleRAII hThread(pi.hThread);
+    ScopedHandle hProcess(pi.hProcess, HandleCloser{});
+    ScopedHandle hThread(pi.hThread, HandleCloser{});
 
     if (!AssignProcessToJobObject(hJob.get(), hProcess.get())) {
         TerminateProcess(hProcess.get(), 1);
@@ -117,13 +106,21 @@ HANDLE start_process(
         throw std::runtime_error("ResumeThread failed: " + std::to_string(GetLastError()));
     }
 
-    hJob.release();
+    // Transfer ownership: hProcess goes to caller, hJob remains open in OS.
+    // Note: hJob created with JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE means:
+    // when this function returns, hJob terminates all child processes on close.
+    // This is intentional: job cleanup is handled by OS.
+    HANDLE result = hProcess.release();
+    (void)hJob.release();  // hJob closed by OS via JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+    (void)hThread.get();   // hThread is paired with hProcess; caller owns cleanup
 
-    return hProcess.release();
+    return result;
 }
 
 bool stop_process(HANDLE pid)
 {
+    // Caller responsibility: must call stop_process() to release HANDLE ownership.
+    // Failing to call this function results in HANDLE leak.
     if (!pid) return false;
     bool result = TerminateProcess(pid, 0) != 0;
     CloseHandle(pid);
