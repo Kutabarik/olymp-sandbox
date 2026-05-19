@@ -106,13 +106,14 @@ HANDLE start_process(
         throw std::runtime_error("ResumeThread failed: " + std::to_string(GetLastError()));
     }
 
-    // Transfer ownership: hProcess goes to caller, hJob remains open in OS.
+    // Transfer ownership of the process handle to the caller.
     // Note: hJob created with JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE means:
     // when this function returns, hJob terminates all child processes on close.
     // This is intentional: job cleanup is handled by OS.
+    // The thread handle is not returned and is closed automatically when hThread
+    // goes out of scope.
     HANDLE result = hProcess.release();
     (void)hJob.release();  // hJob closed by OS via JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
-    (void)hThread.get();   // hThread is paired with hProcess; caller owns cleanup
 
     return result;
 }
