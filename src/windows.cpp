@@ -8,6 +8,8 @@
 #include <vector>
 #include <utility>
 #include <filesystem>
+#include <mutex>
+#include <unordered_map>
 
 class HandleRAII {
     HANDLE h_;
@@ -30,6 +32,23 @@ public:
     HANDLE release() { HANDLE tmp = h_; h_ = NULL; return tmp; }
     explicit operator bool() const { return h_ && h_ != INVALID_HANDLE_VALUE; }
 };
+
+namespace {
+std::mutex g_job_handles_mutex;
+std::unordered_map<HANDLE, HandleRAII> g_job_handles;
+
+void attach_job_handle(HANDLE process_handle, HandleRAII&& job_handle)
+{
+    std::lock_guard<std::mutex> lock(g_job_handles_mutex);
+    g_job_handles.emplace(process_handle, std::move(job_handle));
+}
+
+void detach_job_handle(HANDLE process_handle)
+{
+    std::lock_guard<std::mutex> lock(g_job_handles_mutex);
+    g_job_handles.erase(process_handle);
+}
+} // namespace
 
 std::int64_t get_process_memory(HANDLE pid)
 {
@@ -69,11 +88,11 @@ HANDLE start_process(
     sa.bInheritHandle = TRUE;
 
     HandleRAII hInputFile(CreateFile(input_file.c_str(), GENERIC_READ, FILE_SHARE_READ, &sa, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL));
-    if (!hInputFile)
+    if (hInputFile.get() == INVALID_HANDLE_VALUE)
         throw std::runtime_error("CreateFile input failed: " + std::to_string(GetLastError()));
 
     HandleRAII hOutputFile(CreateFile(output_file.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
-    if (!hOutputFile)
+    if (hOutputFile.get() == INVALID_HANDLE_VALUE)
         throw std::runtime_error("CreateFile output failed: " + std::to_string(GetLastError()));
 
     STARTUPINFO si = {0};
@@ -117,7 +136,7 @@ HANDLE start_process(
         throw std::runtime_error("ResumeThread failed: " + std::to_string(GetLastError()));
     }
 
-    hJob.release();
+    attach_job_handle(hProcess.get(), std::move(hJob));
 
     return hProcess.release();
 }
@@ -127,6 +146,7 @@ bool stop_process(HANDLE pid)
     if (!pid) return false;
     bool result = TerminateProcess(pid, 0) != 0;
     CloseHandle(pid);
+    detach_job_handle(pid);
     return result;
 }
 
