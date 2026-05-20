@@ -40,7 +40,11 @@ std::int64_t get_process_memory(process_id_t) {
 }
 
 process_id_t start_process(const std::string&, const std::string&, const std::string&) {
+#if defined(WIN32)
     return reinterpret_cast<process_id_t>(1);
+#else
+    return static_cast<process_id_t>(1);
+#endif
 }
 
 bool is_up_process(process_id_t) {
