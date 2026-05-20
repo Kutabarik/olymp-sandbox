@@ -113,12 +113,7 @@ namespace mc
 
     process_id_t process_manager::create_process() const
     {
-        logger.info("Process manager initialized with configuration");
-        logger.info("Application: " + config.application);
-        logger.info("Input file: " + config.input);
-        logger.info("Output file: " + config.output);
-        logger.info("Memory limit: " + std::to_string(config.memory_limit) + " bytes");
-        logger.info("Time limit: " + std::to_string(config.time_limit) + " ms");
+        logger.info("Creating child process");
         return start_process(
             config.application,
             config.input,

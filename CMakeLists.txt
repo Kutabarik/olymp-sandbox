@@ -52,6 +52,7 @@ set(TEST_SOURCES
     tests/test_config.cpp
     tests/test_definitions.cpp
     tests/test_result_info.cpp
+    tests/test_process_manager.cpp
 )
 
 # Source files needed for tests
@@ -59,12 +60,14 @@ set(TEST_LIB_SOURCES
     src/config.cpp
     src/definitions.cpp
     src/logger.cpp
+    src/process_manager.cpp
     src/result_info.cpp
 )
 
 add_executable(run_tests ${TEST_SOURCES} ${TEST_LIB_SOURCES})
 target_include_directories(run_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(run_tests PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(run_tests PRIVATE stdc++fs)
 target_compile_options(run_tests PRIVATE -Wall -Wextra -Wpedantic)
 
 # Register tests

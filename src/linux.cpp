@@ -9,6 +9,57 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+namespace {
+
+class ScopedFd {
+public:
+    ScopedFd() : fd_(-1) {}
+    explicit ScopedFd(int fd) : fd_(fd) {}
+
+    ~ScopedFd() {
+        if (fd_ >= 0) {
+            close(fd_);
+        }
+    }
+
+    ScopedFd(const ScopedFd&) = delete;
+    ScopedFd& operator=(const ScopedFd&) = delete;
+
+    ScopedFd(ScopedFd&& other) noexcept : fd_(other.fd_) {
+        other.fd_ = -1;
+    }
+
+    ScopedFd& operator=(ScopedFd&& other) noexcept {
+        if (this != &other) {
+            if (fd_ >= 0) {
+                close(fd_);
+            }
+            fd_ = other.fd_;
+            other.fd_ = -1;
+        }
+        return *this;
+    }
+
+    int get() const {
+        return fd_;
+    }
+
+    int release() {
+        int tmp = fd_;
+        fd_ = -1;
+        return tmp;
+    }
+
+    explicit operator bool() const {
+        return fd_ >= 0;
+    }
+
+private:
+    int fd_;
+};
+
+}  // namespace
+
 /**
  * @brief Get the consumed memory by process
  *
@@ -54,10 +105,19 @@ pid_t start_process(
         // child process obtains pid == 0
         std::cout << "[info] child process " << getpid() << std::endl;
 
-        // int in = open(input_file.c_str(), O_RDONLY);
-        // int out = open(output_file.c_str(), O_WRONLY);
-        // dup2(in, STDIN_FILENO);
-        // dup2(out, STDOUT_FILENO);
+        ScopedFd in(open(input_file.c_str(), O_RDONLY | O_CLOEXEC));
+        ScopedFd out(open(output_file.c_str(),
+                          O_WRONLY | O_CREAT | O_TRUNC | O_CLOEXEC, 0644));
+        if (in) {
+            dup2(in.get(), STDIN_FILENO);
+        } else {
+            std::cerr << "[warn] failed to open input file: " << input_file << std::endl;
+        }
+        if (out) {
+            dup2(out.get(), STDOUT_FILENO);
+        } else {
+            std::cerr << "[warn] failed to open output file: " << output_file << std::endl;
+        }
         execv(filename.c_str(), nullptr);
         std::cout << "[info] child process " << getpid() << std::endl;
         abort();
