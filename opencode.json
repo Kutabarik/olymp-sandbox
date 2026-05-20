@@ -1,13 +1,2 @@
 {
-  "skills": [
-    { "name": "architect", "path": ".github/skills/architect" },
-    { "name": "brainstorming", "path": ".github/skills/brainstorming" },
-    { "name": "cpp-developer", "path": ".github/skills/cpp-developer" },
-    { "name": "windows-cpp-developer", "path": ".github/skills/windows-cpp-developer" },
-    { "name": "linux-cpp-developer", "path": ".github/skills/linux-cpp-developer" },
-    { "name": "devops-engineer", "path": ".github/skills/devops-engineer" },
-    { "name": "test-scenario-writer", "path": ".github/skills/test-scenario-writer" },
-    { "name": "test-writer", "path": ".github/skills/test-writer" },
-    { "name": "problem-decomposer", "path": ".github/skills/problem-decomposer" }
-  ]
 }

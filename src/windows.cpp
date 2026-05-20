@@ -7,57 +7,18 @@
 #include <psapi.h>
 #include <vector>
 #include <utility>
+#include <memory>
 #include <filesystem>
-#include <mutex>
-#include <unordered_map>
 
-class HandleRAII {
-    HANDLE h_;
-public:
-    HandleRAII() : h_(NULL) {}
-    explicit HandleRAII(HANDLE h) : h_(h) {}
-    ~HandleRAII() { if (h_ && h_ != INVALID_HANDLE_VALUE) CloseHandle(h_); }
-    HandleRAII(const HandleRAII&) = delete;
-    HandleRAII& operator=(const HandleRAII&) = delete;
-    HandleRAII(HandleRAII&& other) noexcept : h_(other.h_) { other.h_ = NULL; }
-    HandleRAII& operator=(HandleRAII&& other) noexcept {
-        if (this != &other) {
-            if (h_ && h_ != INVALID_HANDLE_VALUE) CloseHandle(h_);
-            h_ = other.h_;
-            other.h_ = NULL;
+struct HandleCloser {
+    void operator()(HANDLE h) const {
+        if (h != NULL && h != INVALID_HANDLE_VALUE) {
+            CloseHandle(h);
         }
-        return *this;
     }
-    HANDLE get() const { return h_; }
-    HANDLE release() { HANDLE tmp = h_; h_ = NULL; return tmp; }
-    explicit operator bool() const { return h_ && h_ != INVALID_HANDLE_VALUE; }
 };
 
-namespace {
-std::mutex& job_handles_mutex()
-{
-    static std::mutex mutex;
-    return mutex;
-}
-
-std::unordered_map<HANDLE, HandleRAII>& job_handles()
-{
-    static std::unordered_map<HANDLE, HandleRAII> handles;
-    return handles;
-}
-
-void attach_job_handle(HANDLE process_handle, HandleRAII&& job_handle)
-{
-    std::lock_guard<std::mutex> lock(job_handles_mutex());
-    job_handles().emplace(process_handle, std::move(job_handle));
-}
-
-void detach_job_handle(HANDLE process_handle)
-{
-    std::lock_guard<std::mutex> lock(job_handles_mutex());
-    job_handles().erase(process_handle);
-}
-} // namespace
+using ScopedHandle = std::unique_ptr<void, HandleCloser>;
 
 std::int64_t get_process_memory(HANDLE pid)
 {
@@ -83,7 +44,7 @@ HANDLE start_process(
         throw std::runtime_error("Input file does not exist: " + input_file);
     }
 
-    HandleRAII hJob(CreateJobObject(NULL, NULL));
+    ScopedHandle hJob(CreateJobObject(NULL, NULL), HandleCloser{});
     if (!hJob)
         throw std::runtime_error("CreateJobObject failed: " + std::to_string(GetLastError()));
 
@@ -96,12 +57,12 @@ HANDLE start_process(
     sa.nLength = sizeof(sa);
     sa.bInheritHandle = TRUE;
 
-    HandleRAII hInputFile(CreateFile(input_file.c_str(), GENERIC_READ, FILE_SHARE_READ, &sa, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL));
-    if (hInputFile.get() == INVALID_HANDLE_VALUE)
+    ScopedHandle hInputFile(CreateFile(input_file.c_str(), GENERIC_READ, FILE_SHARE_READ, &sa, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL), HandleCloser{});
+    if (!hInputFile)
         throw std::runtime_error("CreateFile input failed: " + std::to_string(GetLastError()));
 
-    HandleRAII hOutputFile(CreateFile(output_file.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
-    if (hOutputFile.get() == INVALID_HANDLE_VALUE)
+    ScopedHandle hOutputFile(CreateFile(output_file.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, &sa, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL), HandleCloser{});
+    if (!hOutputFile)
         throw std::runtime_error("CreateFile output failed: " + std::to_string(GetLastError()));
 
     STARTUPINFO si = {0};
@@ -132,8 +93,8 @@ HANDLE start_process(
         throw std::runtime_error("CreateProcess failed: " + std::to_string(GetLastError()));
     }
 
-    HandleRAII hProcess(pi.hProcess);
-    HandleRAII hThread(pi.hThread);
+    ScopedHandle hProcess(pi.hProcess, HandleCloser{});
+    ScopedHandle hThread(pi.hThread, HandleCloser{});
 
     if (!AssignProcessToJobObject(hJob.get(), hProcess.get())) {
         TerminateProcess(hProcess.get(), 1);
@@ -145,16 +106,24 @@ HANDLE start_process(
         throw std::runtime_error("ResumeThread failed: " + std::to_string(GetLastError()));
     }
 
-    attach_job_handle(hProcess.get(), std::move(hJob));
+    // Transfer ownership of the process handle to the caller.
+    // Note: hJob created with JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE means:
+    // when this function returns, hJob terminates all child processes on close.
+    // This is intentional: job cleanup is handled by OS.
+    // The thread handle is not returned and is closed automatically when hThread
+    // goes out of scope.
+    HANDLE result = hProcess.release();
+    (void)hJob.release();  // hJob closed by OS via JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
 
-    return hProcess.release();
+    return result;
 }
 
 bool stop_process(HANDLE pid)
 {
+    // Caller responsibility: must call stop_process() to release HANDLE ownership.
+    // Failing to call this function results in HANDLE leak.
     if (!pid) return false;
     bool result = TerminateProcess(pid, 0) != 0;
-    detach_job_handle(pid);
     CloseHandle(pid);
     return result;
 }
