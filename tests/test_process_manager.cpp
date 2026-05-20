@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <type_traits>
 
 namespace {
 
@@ -40,11 +41,11 @@ std::int64_t get_process_memory(process_id_t) {
 }
 
 process_id_t start_process(const std::string&, const std::string&, const std::string&) {
-#if defined(WIN32)
-    return reinterpret_cast<process_id_t>(1);
-#else
-    return static_cast<process_id_t>(1);
-#endif
+    if constexpr (std::is_pointer_v<process_id_t>) {
+        return reinterpret_cast<process_id_t>(1);
+    } else {
+        return static_cast<process_id_t>(1);
+    }
 }
 
 bool is_up_process(process_id_t) {
