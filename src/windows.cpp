@@ -34,19 +34,28 @@ public:
 };
 
 namespace {
-std::mutex g_job_handles_mutex;
-std::unordered_map<HANDLE, HandleRAII> g_job_handles;
+std::mutex& job_handles_mutex()
+{
+    static std::mutex mutex;
+    return mutex;
+}
+
+std::unordered_map<HANDLE, HandleRAII>& job_handles()
+{
+    static std::unordered_map<HANDLE, HandleRAII> handles;
+    return handles;
+}
 
 void attach_job_handle(HANDLE process_handle, HandleRAII&& job_handle)
 {
-    std::lock_guard<std::mutex> lock(g_job_handles_mutex);
-    g_job_handles.emplace(process_handle, std::move(job_handle));
+    std::lock_guard<std::mutex> lock(job_handles_mutex());
+    job_handles().emplace(process_handle, std::move(job_handle));
 }
 
 void detach_job_handle(HANDLE process_handle)
 {
-    std::lock_guard<std::mutex> lock(g_job_handles_mutex);
-    g_job_handles.erase(process_handle);
+    std::lock_guard<std::mutex> lock(job_handles_mutex());
+    job_handles().erase(process_handle);
 }
 } // namespace
 
@@ -145,8 +154,8 @@ bool stop_process(HANDLE pid)
 {
     if (!pid) return false;
     bool result = TerminateProcess(pid, 0) != 0;
-    CloseHandle(pid);
     detach_job_handle(pid);
+    CloseHandle(pid);
     return result;
 }
 
