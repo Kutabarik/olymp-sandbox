@@ -52,6 +52,7 @@ set(TEST_SOURCES
     tests/test_config.cpp
     tests/test_definitions.cpp
     tests/test_result_info.cpp
+    tests/test_process_manager.cpp
 )
 
 # Source files needed for tests
@@ -59,6 +60,7 @@ set(TEST_LIB_SOURCES
     src/config.cpp
     src/definitions.cpp
     src/logger.cpp
+    src/process_manager.cpp
     src/result_info.cpp
 )
 
