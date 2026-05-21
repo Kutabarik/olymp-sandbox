@@ -91,25 +91,29 @@ uint64_t get_current_time()
 
 void build_keys(keymap &keys, int argc, char **argv)
 {
-    int i, tmp;
     std::string key, value, aux;
-    for (i = 0; i != argc; ++i)
+    for (int i = 1; i < argc; ++i)
     {
         aux = std::string(argv[i]);
-        tmp = aux.find('=');
-        if (tmp == aux.npos)
+        if (aux.rfind("--", 0) != 0)
         {
-            auto tmp = aux.substr(2);
-            if(keys.count(tmp) == 0)
+            continue;
+        }
+
+        const std::string::size_type eq_pos = aux.find('=');
+        if (eq_pos == std::string::npos)
+        {
+            key = aux.substr(2);
+            if (keys.count(key) == 0)
             {
                 continue;
             }
-            keys[tmp].first = tmp;
+            keys[key].first = key;
             continue;
         }
-        key = aux.substr(2, tmp - 2);
-        value = aux.substr(tmp + 1, aux.size() - tmp - 1);
-        std::cout << "[debug] key = " << key << ", value = " << value << std::endl;
+
+        key = aux.substr(2, eq_pos - 2);
+        value = aux.substr(eq_pos + 1);
         if (keys.count(key) == 0)
         {
             continue;

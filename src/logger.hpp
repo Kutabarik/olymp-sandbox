@@ -2,6 +2,8 @@
 #define _LOGGER_H_
 
 #include <string>
+#include <memory>
+#include <ostream>
 
 namespace mc {
     class logger {
@@ -13,7 +15,7 @@ namespace mc {
             _ERROR_
         };
     private:
-        std::ostream* out;
+        std::shared_ptr<std::ostream> out;
     public:
         logger(const std::string& filename);
         void write(const std::string& message, MESSAGE_TYPE type) const;
