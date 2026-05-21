@@ -110,6 +110,9 @@ namespace mc
         if (!process_closed)
             close_process(pid);
 
+        if (result.status_code == mc::result_info::STATUS::UNKNOWN)
+            result.status_code = mc::result_info::STATUS::OK;
+
         result.max_memory_used = max_memory;
         result.time_used = get_current_time() - start;
         if (result.status_code == mc::result_info::STATUS::OK)
