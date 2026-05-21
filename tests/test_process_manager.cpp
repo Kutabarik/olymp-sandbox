@@ -232,3 +232,95 @@ TEST_CASE("ProcessManager: empty application path throws", "[process_manager][6.
 
     std::filesystem::remove(input_path);
 }
+
+TEST_CASE("ProcessManager: valid config constructs successfully", "[process_manager][8.1]") {
+    reset_process_stubs();
+    const std::string log_path = "pm_test_log_81.log";
+    const std::string input_path = "pm_test_input_81.txt";
+
+    if (std::filesystem::exists(log_path)) {
+        std::filesystem::remove(log_path);
+    }
+    {
+        std::ofstream f(input_path);
+        f << "test data";
+    }
+
+    mc::config cfg;
+    cfg.application = "fake_app.exe";
+    cfg.input = input_path;
+    cfg.output = "testfiles/output_8.txt";
+    cfg.memory_limit = 16000000;
+    cfg.time_limit = 2000;
+
+    REQUIRE_NOTHROW(mc::process_manager(cfg, log_path));
+
+    std::filesystem::remove(input_path);
+    std::filesystem::remove(log_path);
+}
+
+TEST_CASE("ProcessManager: create_process returns valid pid", "[process_manager][8.2]") {
+    reset_process_stubs();
+    const std::string log_path = "pm_test_log_82.log";
+    const std::string input_path = "pm_test_input_82.txt";
+
+    if (std::filesystem::exists(log_path)) {
+        std::filesystem::remove(log_path);
+    }
+    {
+        std::ofstream f(input_path);
+        f << "test data";
+    }
+
+    mc::config cfg;
+    cfg.application = "fake_app.exe";
+    cfg.input = input_path;
+    cfg.output = "testfiles/output_8.txt";
+    cfg.memory_limit = 16000000;
+    cfg.time_limit = 2000;
+
+    {
+        mc::process_manager manager(cfg, log_path);
+        mc::result_info result = manager.start_app();
+
+        REQUIRE(result.status_code != mc::result_info::STATUS::RUNTIME_ERROR);
+
+        const std::string content = read_all(log_path);
+        REQUIRE(content.find("child process id: 1") != std::string::npos);
+    }
+
+    std::filesystem::remove(input_path);
+    std::filesystem::remove(log_path);
+}
+
+TEST_CASE("ProcessManager: is_process_up detects process lifecycle", "[process_manager][8.3]") {
+    reset_process_stubs();
+    const std::string log_path = "pm_test_log_83.log";
+    const std::string input_path = "pm_test_input_83.txt";
+
+    if (std::filesystem::exists(log_path)) {
+        std::filesystem::remove(log_path);
+    }
+    {
+        std::ofstream f(input_path);
+        f << "test data";
+    }
+
+    mc::config cfg;
+    cfg.application = "fake_app.exe";
+    cfg.input = input_path;
+    cfg.output = "testfiles/output_8.txt";
+    cfg.memory_limit = 16000000;
+    cfg.time_limit = 2000;
+
+    {
+        mc::process_manager manager(cfg, log_path);
+        mc::result_info result = manager.start_app();
+
+        REQUIRE(result.status_code != mc::result_info::STATUS::RUNTIME_ERROR);
+        REQUIRE(result.max_memory_used > 0);
+    }
+
+    std::filesystem::remove(input_path);
+    std::filesystem::remove(log_path);
+}
