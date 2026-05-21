@@ -6,7 +6,17 @@
 
 namespace
 {
-    const auto default_options = options;
+    keymap make_default_options()
+    {
+        return {
+            {"app", {"", "path to application"}},
+            {"time", {"1s", "time limit"}},
+            {"memory", {"16M", "memory limit"}},
+            {"input", {"input.txt", "input file"}},
+            {"output", {"output.txt", "output file"}},
+            {"help", {"", "help message"}}
+        };
+    }
 
     struct ArgvBuilder
     {
@@ -33,7 +43,7 @@ namespace
 
     void reset_options()
     {
-        options = default_options;
+        options = make_default_options();
     }
 }
 
