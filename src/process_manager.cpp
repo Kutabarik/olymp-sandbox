@@ -21,9 +21,9 @@ bool stop_process(process_id_t pid);
 namespace mc
 {
 
-    process_manager::process_manager(const mc::config &cfg): 
+    process_manager::process_manager(const mc::config &cfg, const std::string& log_path): 
         config(cfg),
-        logger(std::string("process_manager.log"))
+        logger(log_path)
     {
         logger.info("Process manager initialized with configuration");
         logger.info("Application: " + config.application);
@@ -55,6 +55,11 @@ namespace mc
         {
             logger.error("Input file does not exist: " + config.input);
             throw std::runtime_error("Input file does not exist: " + config.input);
+        }
+        if (std::filesystem::file_size(config.input) == 0)
+        {
+            logger.error("Input file is empty: " + config.input);
+            throw std::runtime_error("Input file is empty: " + config.input);
         }
     }
 

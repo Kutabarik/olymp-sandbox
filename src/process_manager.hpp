@@ -18,7 +18,7 @@ namespace mc
         mc::logger logger;
 
     public:
-        process_manager(const mc::config &);
+        process_manager(const mc::config &, const std::string& log_path = "process_manager.log");
         mc::result_info start_app() const;
 
     private:
