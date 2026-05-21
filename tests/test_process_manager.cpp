@@ -280,7 +280,7 @@ TEST_CASE("ProcessManager: create_process returns valid pid", "[process_manager]
         REQUIRE(result.status_code != mc::result_info::STATUS::RUNTIME_ERROR);
 
         const std::string content = read_all(log_path);
-        REQUIRE(content.find("child process id: ") != std::string::npos);
+        REQUIRE(content.find("child process id: 1") != std::string::npos);
     }
 
     std::filesystem::remove(input_path);
