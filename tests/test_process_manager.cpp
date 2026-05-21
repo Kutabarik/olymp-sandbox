@@ -235,7 +235,12 @@ TEST_CASE("ProcessManager: empty application path throws", "[process_manager][6.
 
 TEST_CASE("ProcessManager: valid config constructs successfully", "[process_manager][8.1]") {
     reset_process_stubs();
+    const std::string log_path = "pm_test_log_81.log";
     const std::string input_path = "pm_test_input_81.txt";
+
+    if (std::filesystem::exists(log_path)) {
+        std::filesystem::remove(log_path);
+    }
     {
         std::ofstream f(input_path);
         f << "test data";
@@ -248,9 +253,10 @@ TEST_CASE("ProcessManager: valid config constructs successfully", "[process_mana
     cfg.memory_limit = 16000000;
     cfg.time_limit = 2000;
 
-    REQUIRE_NOTHROW(mc::process_manager(cfg));
+    REQUIRE_NOTHROW(mc::process_manager(cfg, log_path));
 
     std::filesystem::remove(input_path);
+    std::filesystem::remove(log_path);
 }
 
 TEST_CASE("ProcessManager: create_process returns valid pid", "[process_manager][8.2]") {
