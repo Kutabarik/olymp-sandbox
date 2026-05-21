@@ -273,13 +273,15 @@ TEST_CASE("ProcessManager: create_process returns valid pid", "[process_manager]
     cfg.memory_limit = 16000000;
     cfg.time_limit = 2000;
 
-    mc::process_manager manager(cfg, log_path);
-    mc::result_info result = manager.start_app();
+    {
+        mc::process_manager manager(cfg, log_path);
+        mc::result_info result = manager.start_app();
 
-    REQUIRE(result.status_code != mc::result_info::STATUS::RUNTIME_ERROR);
+        REQUIRE(result.status_code != mc::result_info::STATUS::RUNTIME_ERROR);
 
-    const std::string content = read_all(log_path);
-    REQUIRE(content.find("child process id: ") != std::string::npos);
+        const std::string content = read_all(log_path);
+        REQUIRE(content.find("child process id: ") != std::string::npos);
+    }
 
     std::filesystem::remove(input_path);
     std::filesystem::remove(log_path);
@@ -305,11 +307,13 @@ TEST_CASE("ProcessManager: is_process_up detects process lifecycle", "[process_m
     cfg.memory_limit = 16000000;
     cfg.time_limit = 2000;
 
-    mc::process_manager manager(cfg, log_path);
-    mc::result_info result = manager.start_app();
+    {
+        mc::process_manager manager(cfg, log_path);
+        mc::result_info result = manager.start_app();
 
-    REQUIRE(result.status_code != mc::result_info::STATUS::RUNTIME_ERROR);
-    REQUIRE(result.max_memory_used > 0);
+        REQUIRE(result.status_code != mc::result_info::STATUS::RUNTIME_ERROR);
+        REQUIRE(result.max_memory_used > 0);
+    }
 
     std::filesystem::remove(input_path);
     std::filesystem::remove(log_path);
