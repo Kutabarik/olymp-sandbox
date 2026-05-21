@@ -107,11 +107,14 @@ namespace mc
             }
         }
 
+        bool exited_cleanly = false;
         if (!process_closed)
-            close_process(pid);
+            exited_cleanly = close_process(pid);
 
         if (result.status_code == mc::result_info::STATUS::UNKNOWN)
-            result.status_code = mc::result_info::STATUS::OK;
+            result.status_code = exited_cleanly
+                ? mc::result_info::STATUS::OK
+                : mc::result_info::STATUS::RUNTIME_ERROR;
 
         result.max_memory_used = max_memory;
         result.time_used = get_current_time() - start;
