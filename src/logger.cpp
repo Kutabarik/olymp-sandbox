@@ -14,8 +14,16 @@ namespace mc
         {logger::MESSAGE_TYPE::_ERROR_, "error"},
     };
 
-    logger::logger(const std::string &filename) : out(new std::ofstream(filename.c_str()))
+    logger::logger(const std::string &filename)
     {
+        if (filename.empty())
+        {
+            out = std::shared_ptr<std::ostream>(&std::cout, [](std::ostream*) {});
+        }
+        else
+        {
+            out = std::make_shared<std::ofstream>(filename.c_str());
+        }
     }
 
     void logger::write(const std::string &message, MESSAGE_TYPE type) const
@@ -49,15 +57,13 @@ namespace mc
 
     logger logger::STDOUT()
     {
-        logger object("");
-        object.out = &(std::cout);
-        return object;
+        return logger("");
     }
 
     logger logger::STDERR()
     {
         logger object("");
-        object.out = &(std::cerr);
+        object.out = std::shared_ptr<std::ostream>(&std::cerr, [](std::ostream*) {});
         return object;
     }
 

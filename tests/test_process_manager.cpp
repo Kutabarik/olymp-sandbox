@@ -81,11 +81,13 @@ TEST_CASE("ProcessManager: constructor logs config once", "[process_manager][5.3
     cfg.memory_limit = 16000000;
     cfg.time_limit = 2000;
 
-    mc::process_manager manager(cfg, log_path);
-    (void)manager;
+    {
+        mc::process_manager manager(cfg, log_path);
+        (void)manager;
 
-    const std::string content = read_all(log_path);
-    REQUIRE(count_substring(content, "Process manager initialized with configuration") == 1);
+        const std::string content = read_all(log_path);
+        REQUIRE(count_substring(content, "Process manager initialized with configuration") == 1);
+    }
 
     std::filesystem::remove(input_path);
     std::filesystem::remove(log_path);
@@ -111,12 +113,14 @@ TEST_CASE("ProcessManager: start_app does not duplicate init logs", "[process_ma
     cfg.memory_limit = 16000000;
     cfg.time_limit = 2000;
 
-    mc::process_manager manager(cfg, log_path);
-    (void)manager.start_app();
+    {
+        mc::process_manager manager(cfg, log_path);
+        (void)manager.start_app();
 
-    const std::string content = read_all(log_path);
-    REQUIRE(count_substring(content, "Process manager initialized with configuration") == 1);
-    REQUIRE(content.find("Creating child process") != std::string::npos);
+        const std::string content = read_all(log_path);
+        REQUIRE(count_substring(content, "Process manager initialized with configuration") == 1);
+        REQUIRE(content.find("Creating child process") != std::string::npos);
+    }
 
     std::filesystem::remove(input_path);
     std::filesystem::remove(log_path);

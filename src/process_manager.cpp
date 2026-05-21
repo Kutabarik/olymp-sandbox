@@ -95,8 +95,9 @@ namespace mc
                 result.status_code = mc::result_info::STATUS::RUNTIME_ERROR;
                 break;
             }
-            if (tmp_mem > max_memory)
-                max_memory = tmp_mem;
+            const uint64_t tmp_mem_u64 = static_cast<uint64_t>(tmp_mem);
+            if (tmp_mem_u64 > max_memory)
+                max_memory = tmp_mem_u64;
             if (is_memory_limit(pid, config.memory_limit))
             {
                 close_process(pid);
@@ -139,10 +140,10 @@ namespace mc
             logger.error("Failed to get process memory");
             return false;
         }
-        return usedMemory > memory_limit;
+        return static_cast<uint64_t>(usedMemory) > memory_limit;
     }
 
-    bool process_manager::is_time_limit(process_id_t pid, uint64_t start_time) const
+    bool process_manager::is_time_limit(process_id_t /*pid*/, uint64_t start_time) const
     {
         uint64_t current_time = get_current_time();
         logger.info(std::string("start time: ") + std::to_string(start_time));

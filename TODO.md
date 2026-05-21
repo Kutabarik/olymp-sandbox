@@ -61,10 +61,10 @@
 
 ## Sprint 7-9 (Недели 13-18) — CI/CD и интеграция
 
-- [ ] **7.1** Создать .github/workflows/build.yml (3 SP)
-- [ ] **7.2** CI для Ubuntu (2 SP)
-- [ ] **7.3** CI для Windows (2 SP)
-- [ ] **7.4** Запуск тестов в CI (3 SP)
+- [x] **7.1** Создать .github/workflows/build.yml (3 SP)
+- [x] **7.2** CI для Ubuntu (2 SP)
+- [x] **7.3** CI для Windows (2 SP)
+- [x] **7.4** Запуск тестов в CI (3 SP)
 - [ ] **8.1** Тест: создание process_manager (3 SP)
 - [ ] **8.2** Тест: create_process() (3 SP)
 - [ ] **8.3** Тест: is_process_up() (2 SP)
