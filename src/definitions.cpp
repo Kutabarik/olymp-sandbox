@@ -108,7 +108,14 @@ void build_keys(keymap &keys, int argc, char **argv)
             {
                 continue;
             }
-            keys[key].first = key;
+            if (key == "help")
+            {
+                keys[key].first = "1";
+            }
+            else if (key == "app")
+            {
+                keys[key].first.clear();
+            }
             continue;
         }
 
