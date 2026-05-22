@@ -26,7 +26,7 @@ namespace mc
         bool is_memory_limit(process_id_t pid, uint64_t memory_limit) const;
         bool is_time_limit(process_id_t pid, uint64_t start_time) const;
         bool is_process_up(process_id_t pid) const;
-        void close_process(process_id_t pid) const;
+        bool close_process(process_id_t pid) const;
     };
 }
 

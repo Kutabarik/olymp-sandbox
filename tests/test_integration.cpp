@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <chrono>
+#include <vector>
 #include <string>
 #include <system_error>
 #include <thread>
@@ -27,9 +28,28 @@ bool wait_for_non_empty_file(const std::string& path) {
     return false;
 }
 
+class scoped_cleanup {
+public:
+    explicit scoped_cleanup(std::initializer_list<std::string> paths)
+        : paths_(paths) {
+        for (const auto& path : paths_) {
+            remove_if_exists(path);
+        }
+    }
+
+    ~scoped_cleanup() {
+        for (const auto& path : paths_) {
+            remove_if_exists(path);
+        }
+    }
+
+private:
+    std::vector<std::string> paths_;
+};
+
 std::string get_testapp_path() {
-#if defined(WIN32)
-    const std::string app = "testapp.exe";
+#ifdef TESTAPP_PATH
+    const std::string app = TESTAPP_PATH;
 #else
     const std::string app = "testapp";
 #endif
@@ -70,10 +90,7 @@ TEST_CASE("Integration: testapp runs with valid input/output", "[integration][9.
     const std::string input_path = "integration_input_92.txt";
     const std::string output_path = "integration_output_92.txt";
     const std::string log_path = "integration_log_92.log";
-
-    remove_if_exists(input_path);
-    remove_if_exists(output_path);
-    remove_if_exists(log_path);
+    const scoped_cleanup cleanup{input_path, output_path, log_path};
 
     {
         std::ofstream in(input_path);
@@ -91,9 +108,6 @@ TEST_CASE("Integration: testapp runs with valid input/output", "[integration][9.
     REQUIRE(std::filesystem::exists(output_path));
     REQUIRE(wait_for_non_empty_file(output_path));
 
-    remove_if_exists(input_path);
-    remove_if_exists(output_path);
-    remove_if_exists(log_path);
 }
 
 TEST_CASE("Integration: time limit is enforced", "[integration][9.3]") {
@@ -104,10 +118,7 @@ TEST_CASE("Integration: time limit is enforced", "[integration][9.3]") {
     const std::string input_path = "integration_input_93.txt";
     const std::string output_path = "integration_output_93.txt";
     const std::string log_path = "integration_log_93.log";
-
-    remove_if_exists(input_path);
-    remove_if_exists(output_path);
-    remove_if_exists(log_path);
+    const scoped_cleanup cleanup{input_path, output_path, log_path};
 
     {
         std::ofstream in(input_path);
@@ -122,9 +133,6 @@ TEST_CASE("Integration: time limit is enforced", "[integration][9.3]") {
         REQUIRE(result.status_code == mc::result_info::STATUS::TIME_LIMIT);
     }
 
-    remove_if_exists(input_path);
-    remove_if_exists(output_path);
-    remove_if_exists(log_path);
 }
 
 TEST_CASE("Integration: memory limit is enforced", "[integration][9.4]") {
@@ -135,10 +143,7 @@ TEST_CASE("Integration: memory limit is enforced", "[integration][9.4]") {
     const std::string input_path = "integration_input_94.txt";
     const std::string output_path = "integration_output_94.txt";
     const std::string log_path = "integration_log_94.log";
-
-    remove_if_exists(input_path);
-    remove_if_exists(output_path);
-    remove_if_exists(log_path);
+    const scoped_cleanup cleanup{input_path, output_path, log_path};
 
     {
         std::ofstream in(input_path);
@@ -153,7 +158,4 @@ TEST_CASE("Integration: memory limit is enforced", "[integration][9.4]") {
         REQUIRE(result.status_code == mc::result_info::STATUS::MEMORY_LIMIT);
     }
 
-    remove_if_exists(input_path);
-    remove_if_exists(output_path);
-    remove_if_exists(log_path);
 }

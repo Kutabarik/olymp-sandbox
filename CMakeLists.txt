@@ -87,8 +87,10 @@ set(INTEGRATION_LIB_SOURCES
 )
 
 add_executable(run_integration_tests ${INTEGRATION_TEST_SOURCES} ${INTEGRATION_LIB_SOURCES})
+add_dependencies(run_integration_tests testapp)
 target_include_directories(run_integration_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(run_integration_tests PRIVATE Catch2::Catch2WithMain)
 target_compile_options(run_integration_tests PRIVATE -Wall -Wextra -Wpedantic)
+target_compile_definitions(run_integration_tests PRIVATE TESTAPP_PATH="$<TARGET_FILE:testapp>")
 
 catch_discover_tests(run_integration_tests)

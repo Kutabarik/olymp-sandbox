@@ -133,9 +133,9 @@ namespace mc
         );
     }
 
-    void process_manager::close_process(process_id_t pid) const
+    bool process_manager::close_process(process_id_t pid) const
     {
-        ::stop_process(pid);
+        return ::stop_process(pid);
     }
 
     bool process_manager::is_memory_limit(process_id_t pid, uint64_t memory_limit) const
