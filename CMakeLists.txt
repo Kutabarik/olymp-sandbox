@@ -71,3 +71,26 @@ target_compile_options(run_tests PRIVATE -Wall -Wextra -Wpedantic)
 
 # Register tests
 catch_discover_tests(run_tests)
+
+# Integration tests (Sprint 9)
+set(INTEGRATION_TEST_SOURCES
+    tests/test_integration.cpp
+)
+
+set(INTEGRATION_LIB_SOURCES
+    src/config.cpp
+    src/definitions.cpp
+    src/logger.cpp
+    src/process_manager.cpp
+    src/result_info.cpp
+    src/${TARGET}.cpp
+)
+
+add_executable(run_integration_tests ${INTEGRATION_TEST_SOURCES} ${INTEGRATION_LIB_SOURCES})
+add_dependencies(run_integration_tests testapp)
+target_include_directories(run_integration_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(run_integration_tests PRIVATE Catch2::Catch2WithMain)
+target_compile_options(run_integration_tests PRIVATE -Wall -Wextra -Wpedantic)
+target_compile_definitions(run_integration_tests PRIVATE TESTAPP_PATH="$<TARGET_FILE:testapp>")
+
+catch_discover_tests(run_integration_tests)
