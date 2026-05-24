@@ -98,7 +98,7 @@ namespace mc
             const uint64_t tmp_mem_u64 = static_cast<uint64_t>(tmp_mem);
             if (tmp_mem_u64 > max_memory)
                 max_memory = tmp_mem_u64;
-            if (is_memory_limit(pid, config.memory_limit))
+            if (tmp_mem_u64 > config.memory_limit)
             {
                 close_process(pid);
                 process_closed = true;

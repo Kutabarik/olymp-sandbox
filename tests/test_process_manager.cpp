@@ -9,9 +9,11 @@
 namespace {
 
 int g_is_up_calls = 0;
+int g_get_memory_calls = 0;
 
 void reset_process_stubs() {
     g_is_up_calls = 0;
+    g_get_memory_calls = 0;
 }
 
 size_t count_substring(const std::string& haystack, const std::string& needle) {
@@ -46,6 +48,7 @@ std::string get_runtime_error_message(Callable&& callable) {
 }  // namespace
 
 std::int64_t get_process_memory(process_id_t) {
+    ++g_get_memory_calls;
     return 1024;
 }
 
@@ -331,6 +334,38 @@ TEST_CASE("ProcessManager: is_process_up detects process lifecycle", "[process_m
 
         REQUIRE(result.status_code != mc::result_info::STATUS::RUNTIME_ERROR);
         REQUIRE(result.max_memory_used > 0);
+    }
+
+    std::filesystem::remove(input_path);
+    std::filesystem::remove(output_path);
+    std::filesystem::remove(log_path);
+}
+
+TEST_CASE("ProcessManager: memory is sampled once per monitor iteration", "[process_manager][8.3]") {
+    reset_process_stubs();
+    const std::string log_path = "pm_test_log_83_memsample.log";
+    const std::string input_path = "pm_test_input_83_memsample.txt";
+    const std::string output_path = "pm_test_output_83_memsample.txt";
+
+    if (std::filesystem::exists(log_path)) {
+        std::filesystem::remove(log_path);
+    }
+    {
+        std::ofstream f(input_path);
+        f << "test data";
+    }
+
+    mc::config cfg;
+    cfg.application = "fake_app.exe";
+    cfg.input = input_path;
+    cfg.output = output_path;
+    cfg.memory_limit = 16000000;
+    cfg.time_limit = 2000;
+
+    {
+        mc::process_manager manager(cfg, log_path);
+        (void)manager.start_app();
+        REQUIRE(g_get_memory_calls == 1);
     }
 
     std::filesystem::remove(input_path);
