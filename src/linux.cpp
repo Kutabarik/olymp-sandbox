@@ -6,6 +6,7 @@
 #include <string>
 #include <thread>
 #include <sys/sysinfo.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -125,7 +126,9 @@ pid_t start_process(
 
 bool is_up_process(pid_t pid)
 {
-    return kill(pid, 0) == 0;
+    int status;
+    pid_t result = waitpid(pid, &status, WNOHANG);
+    return result == 0;
 }
 
 bool stop_process(pid_t pid)
