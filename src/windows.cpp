@@ -136,3 +136,12 @@ bool is_up_process(HANDLE pid)
         throw std::runtime_error("GetExitCodeProcess failed: " + std::to_string(GetLastError()));
     return exit_code == STILL_ACTIVE;
 }
+
+bool apply_cgroup_limit(HANDLE /*pid*/, size_t /*limit*/)
+{
+    return false;
+}
+
+void remove_cgroup(HANDLE /*pid*/)
+{
+}

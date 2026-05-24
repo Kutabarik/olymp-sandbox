@@ -30,6 +30,9 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure
 
+      - name: Test cgroup memory limit with sudo
+        run: sudo ctest --test-dir build --output-on-failure -R "cgroup memory limit is enforced"
+
   windows-mingw:
     name: Windows MinGW (MSYS2)
     runs-on: windows-latest

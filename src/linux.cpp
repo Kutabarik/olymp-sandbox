@@ -21,13 +21,16 @@ namespace {
  */
 class CgroupManager {
 public:
+    static std::filesystem::path group_path_for(pid_t pid) {
+        return std::filesystem::path("/sys/fs/cgroup") / ("sandbox_" + std::to_string(pid));
+    }
+
     static bool apply_memory_limit(pid_t pid, size_t limit_bytes) {
         const std::string base_path = "/sys/fs/cgroup";
         if (!std::filesystem::exists(base_path)) return false;
 
         try {
-            std::string group_name = "sandbox_" + std::to_string(pid);
-            std::filesystem::path group_path = std::filesystem::path(base_path) / group_name;
+            std::filesystem::path group_path = group_path_for(pid);
 
             // Create cgroup directory
             if (!std::filesystem::exists(group_path)) {
@@ -52,14 +55,30 @@ public:
         }
     }
 
+    static bool did_oom_kill(pid_t pid) {
+        std::ifstream events_file(group_path_for(pid) / "memory.events");
+        if (!events_file) {
+            return false;
+        }
+
+        std::string key;
+        unsigned long long value = 0;
+        while (events_file >> key >> value) {
+            if (key == "oom_kill" || key == "oom_group_kill") {
+                return value > 0;
+            }
+        }
+
+        return false;
+    }
+
     static void remove_group(pid_t pid) {
-        std::string group_name = "sandbox_" + std::to_string(pid);
         std::error_code ec;
-        std::filesystem::remove_all("/sys/fs/cgroup/" + group_name, ec);
+        std::filesystem::remove_all(group_path_for(pid), ec);
     }
 };
 
-}  // namespace
+class ScopedFd {
 public:
     ScopedFd() : fd_(-1) {}
     explicit ScopedFd(int fd) : fd_(fd) {}
@@ -214,6 +233,11 @@ bool stop_process(pid_t pid)
 bool apply_cgroup_limit(pid_t pid, size_t limit)
 {
     return CgroupManager::apply_memory_limit(pid, limit);
+}
+
+bool did_cgroup_oom(pid_t pid)
+{
+    return CgroupManager::did_oom_kill(pid);
 }
 
 void remove_cgroup(pid_t pid)

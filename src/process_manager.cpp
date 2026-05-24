@@ -16,8 +16,11 @@ process_id_t start_process(
     const std::string& output_file);
 bool is_up_process(process_id_t pid);
 bool stop_process(process_id_t pid);
+#if !defined(WIN32)
 bool apply_cgroup_limit(process_id_t pid, size_t limit);
+bool did_cgroup_oom(process_id_t pid);
 void remove_cgroup(process_id_t pid);
+#endif
 // ----------------------------------------------------------------
 
 namespace mc
@@ -78,12 +81,16 @@ namespace mc
             return result;
         }
 
+#if !defined(WIN32)
+        bool cgroup_limit_applied = false;
         // Try to apply hard memory limit via cgroups (Linux only)
         if (apply_cgroup_limit(pid, config.memory_limit)) {
+            cgroup_limit_applied = true;
             logger.info("Cgroup memory limit applied successfully");
         } else {
             logger.warn("Cgroup memory limit could not be applied (likely missing root privileges)");
         }
+#endif
 
         uint64_t start = get_current_time();
         uint64_t max_memory = 0;
@@ -100,9 +107,7 @@ namespace mc
             }
             int64_t tmp_mem = get_process_memory(pid);
             if (tmp_mem < 0) {
-                logger.error("Failed to get process memory");
-                result.status_code = mc::result_info::STATUS::RUNTIME_ERROR;
-                break;
+                continue;
             }
             const uint64_t tmp_mem_u64 = static_cast<uint64_t>(tmp_mem);
             if (tmp_mem_u64 > max_memory)
@@ -120,8 +125,16 @@ namespace mc
         if (!process_closed)
             exited_cleanly = close_process(pid);
 
+#if !defined(WIN32)
+        if (result.status_code == mc::result_info::STATUS::UNKNOWN &&
+            cgroup_limit_applied &&
+            did_cgroup_oom(pid)) {
+            result.status_code = mc::result_info::STATUS::MEMORY_LIMIT;
+        }
+
         // Cleanup cgroup if it was used
         remove_cgroup(pid);
+#endif
 
         if (result.status_code == mc::result_info::STATUS::UNKNOWN)
         {
