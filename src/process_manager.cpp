@@ -112,13 +112,24 @@ namespace mc
             exited_cleanly = close_process(pid);
 
         if (result.status_code == mc::result_info::STATUS::UNKNOWN)
-            result.status_code = exited_cleanly
-                ? mc::result_info::STATUS::OK
-                : mc::result_info::STATUS::RUNTIME_ERROR;
+        {
+            if (!exited_cleanly)
+            {
+                result.status_code = mc::result_info::STATUS::RUNTIME_ERROR;
+            }
+            else if (!std::filesystem::exists(config.output))
+            {
+                logger.error("Output file does not exist: " + config.output);
+                result.status_code = mc::result_info::STATUS::RUNTIME_ERROR;
+            }
+            else
+            {
+                result.status_code = mc::result_info::STATUS::OK;
+            }
+        }
 
         result.max_memory_used = max_memory;
         result.time_used = get_current_time() - start;
-
         if (result.status_code == mc::result_info::STATUS::OK)
             logger.info("end guard process");
         return result;
