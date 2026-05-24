@@ -341,40 +341,6 @@ TEST_CASE("ProcessManager: missing output file returns runtime error", "[process
     reset_process_stubs();
     const std::string log_path = "pm_test_log_84.log";
     const std::string input_path = "pm_test_input_84.txt";
-    const std::string output_path = "pm_missing_dir_84/output.txt";
-
-    if (std::filesystem::exists(log_path)) {
-        std::filesystem::remove(log_path);
-    }
-    std::filesystem::remove_all("pm_missing_dir_84");
-
-    {
-        std::ofstream f(input_path);
-        f << "test data";
-    }
-
-    mc::config cfg;
-    cfg.application = "fake_app.exe";
-    cfg.input = input_path;
-    cfg.output = output_path;
-    cfg.memory_limit = 16000000;
-    cfg.time_limit = 2000;
-
-    {
-        mc::process_manager manager(cfg, log_path);
-        mc::result_info result = manager.start_app();
-        REQUIRE(result.status_code == mc::result_info::STATUS::RUNTIME_ERROR);
-    }
-
-    std::filesystem::remove(input_path);
-    std::filesystem::remove(log_path);
-    std::filesystem::remove(cfg.output);
-}
-
-TEST_CASE("ProcessManager: missing output file returns runtime error", "[process_manager][8.4]") {
-    reset_process_stubs();
-    const std::string log_path = "pm_test_log_84.log";
-    const std::string input_path = "pm_test_input_84.txt";
     const std::string missing_dir = "pm_missing_dir_84";
 
     if (std::filesystem::exists(log_path)) {
