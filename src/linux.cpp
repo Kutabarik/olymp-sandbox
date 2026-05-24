@@ -11,10 +11,55 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <filesystem>
 
 namespace {
 
-class ScopedFd {
+/**
+ * @brief Helper to manage cgroup v2 memory limits.
+ * Requires root privileges to create and modify cgroups.
+ */
+class CgroupManager {
+public:
+    static bool apply_memory_limit(pid_t pid, size_t limit_bytes) {
+        const std::string base_path = "/sys/fs/cgroup";
+        if (!std::filesystem::exists(base_path)) return false;
+
+        try {
+            std::string group_name = "sandbox_" + std::to_string(pid);
+            std::filesystem::path group_path = std::filesystem::path(base_path) / group_name;
+
+            // Create cgroup directory
+            if (!std::filesystem::exists(group_path)) {
+                if (!std::filesystem::create_directory(group_path)) return false;
+            }
+
+            // Set memory limit
+            std::ofstream limit_file(group_path / "memory.max");
+            if (!limit_file) return false;
+            limit_file << limit_bytes;
+            limit_file.close();
+
+            // Add process to cgroup
+            std::ofstream procs_file(group_path / "cgroup.procs");
+            if (!procs_file) return false;
+            procs_file << pid;
+            procs_file.close();
+
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
+
+    static void remove_group(pid_t pid) {
+        std::string group_name = "sandbox_" + std::to_string(pid);
+        std::error_code ec;
+        std::filesystem::remove_all("/sys/fs/cgroup/" + group_name, ec);
+    }
+};
+
+}  // namespace
 public:
     ScopedFd() : fd_(-1) {}
     explicit ScopedFd(int fd) : fd_(fd) {}
@@ -164,4 +209,14 @@ bool stop_process(pid_t pid)
         return WEXITSTATUS(status) == 0;
     }
     return false;
+}
+
+bool apply_cgroup_limit(pid_t pid, size_t limit)
+{
+    return CgroupManager::apply_memory_limit(pid, limit);
+}
+
+void remove_cgroup(pid_t pid)
+{
+    CgroupManager::remove_group(pid);
 }

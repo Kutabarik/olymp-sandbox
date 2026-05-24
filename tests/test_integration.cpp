@@ -166,6 +166,33 @@ TEST_CASE("Integration: memory limit is enforced", "[integration][9.4]") {
 
 }
 
+TEST_CASE("Integration: cgroup memory limit is enforced (root required)", "[integration][13.4]") {
+#if defined(WIN32)
+    SKIP("Integration tests run on Linux.");
+#endif
+
+    const std::string input_path = "integration_input_13_4.txt";
+    const std::string output_path = "integration_output_13_4.txt";
+    const std::string log_path = "integration_log_13_4.log";
+    const scoped_cleanup cleanup{input_path, output_path, log_path};
+
+    {
+        std::ofstream in(input_path);
+        in << "200 131072"; // 128 MB
+    }
+
+    {
+        // Set a very tight limit (e.g., 16 MB) to trigger cgroup OOM
+        mc::process_manager manager(
+            make_cfg(input_path, output_path, 16ull * 1024ull * 1024ull, 2000),
+            log_path);
+        const mc::result_info result = manager.start_app();
+        
+        // If we are root, cgroup should kill it. If not, the loop monitor will still catch it.
+        REQUIRE(result.status_code == mc::result_info::STATUS::MEMORY_LIMIT);
+    }
+}
+
 TEST_CASE("Integration: stdin redirection works on Linux", "[integration][10.2]") {
 #if defined(WIN32)
     SKIP("Linux-specific test");

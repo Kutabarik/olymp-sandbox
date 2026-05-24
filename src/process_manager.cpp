@@ -16,6 +16,8 @@ process_id_t start_process(
     const std::string& output_file);
 bool is_up_process(process_id_t pid);
 bool stop_process(process_id_t pid);
+bool apply_cgroup_limit(process_id_t pid, size_t limit);
+void remove_cgroup(process_id_t pid);
 // ----------------------------------------------------------------
 
 namespace mc
@@ -76,6 +78,13 @@ namespace mc
             return result;
         }
 
+        // Try to apply hard memory limit via cgroups (Linux only)
+        if (apply_cgroup_limit(pid, config.memory_limit)) {
+            logger.info("Cgroup memory limit applied successfully");
+        } else {
+            logger.warn("Cgroup memory limit could not be applied (likely missing root privileges)");
+        }
+
         uint64_t start = get_current_time();
         uint64_t max_memory = 0;
         bool process_closed = false;
@@ -110,6 +119,9 @@ namespace mc
         bool exited_cleanly = false;
         if (!process_closed)
             exited_cleanly = close_process(pid);
+
+        // Cleanup cgroup if it was used
+        remove_cgroup(pid);
 
         if (result.status_code == mc::result_info::STATUS::UNKNOWN)
         {
