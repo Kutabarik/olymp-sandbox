@@ -91,9 +91,9 @@ namespace mc
             }
             int64_t tmp_mem = get_process_memory(pid);
             if (tmp_mem < 0) {
-                // Process may have just exited (zombie has no VmSize);
-                // is_process_up will catch it on next iteration.
-                continue;
+                logger.error("Failed to get process memory");
+                result.status_code = mc::result_info::STATUS::RUNTIME_ERROR;
+                break;
             }
             const uint64_t tmp_mem_u64 = static_cast<uint64_t>(tmp_mem);
             if (tmp_mem_u64 > max_memory)
@@ -112,16 +112,19 @@ namespace mc
             exited_cleanly = close_process(pid);
 
         if (result.status_code == mc::result_info::STATUS::UNKNOWN)
-            result.status_code = exited_cleanly
-                ? mc::result_info::STATUS::OK
-                : mc::result_info::STATUS::RUNTIME_ERROR;
-
-        if (result.status_code == mc::result_info::STATUS::OK) {
-            if (!std::filesystem::exists(config.output)) {
-                logger.error("Output file was not created: " + config.output);
+        {
+            if (!exited_cleanly)
+            {
                 result.status_code = mc::result_info::STATUS::RUNTIME_ERROR;
-            } else if (std::filesystem::file_size(config.output) == 0) {
-                logger.warn("Output file is empty: " + config.output);
+            }
+            else if (!std::filesystem::exists(config.output))
+            {
+                logger.error("Output file does not exist: " + config.output);
+                result.status_code = mc::result_info::STATUS::RUNTIME_ERROR;
+            }
+            else
+            {
+                result.status_code = mc::result_info::STATUS::OK;
             }
         }
 
@@ -144,8 +147,6 @@ namespace mc
 
     bool process_manager::close_process(process_id_t pid) const
     {
-        if (!::is_up_process(pid))
-            return true;
         return ::stop_process(pid);
     }
 

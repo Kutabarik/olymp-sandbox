@@ -6,43 +6,46 @@
 namespace mc
 {
     /**
-     * @brief Configuration parameters for process_manager.
-     *
-     * Holds all parameters for a single managed execution:
-     * application path, I/O files, resource limits.
-     * Also reused inside result_info to record what config was used.
+     * @brief the structure defines a process manager configuration. 
+     *        also used for result.
+     * 
      */
     struct config
     {
-        /** @brief Path to the executable to be managed */
+        /**
+         * @brief executed application
+         * 
+         */
         std::string application;
-
-        /** @brief Input file path (stdin will be redirected from this file) */
+        /**
+         * @brief input data file
+         * 
+         */
         std::string input = std::string("input.txt");
-
-        /** @brief Output file path (stdout will be redirected to this file) */
+        /**
+         * @brief output data file
+         * 
+         */
         std::string output = std::string("output.txt");
-
-        /** @brief Memory limit in bytes */
+        /**
+         * @brief memory limit for application or max memory, in bytes
+         * 
+         */
         size_t memory_limit = 8000000;
-
-        /** @brief Time limit in milliseconds */
+        /**
+         * @brief time limit of application or execution time, in milliseconds
+         * 
+         */
         size_t time_limit = 1000;
 
         config() = default;
         config(const config& object);
-
         config operator = (const config& object);
-
         /**
-         * @brief Parse CLI arguments into this config.
+         * @brief Initialize config from command-line options.
          *
-         * Expects arguments in the form --key=value.
-         * Supported keys: app, time, memory, input, output, help.
-         *
-         * @param argc Argument count
-         * @param argv Argument vector
-         * @return true if parsing succeeded, false on --help
+         * @return true when initialization succeeds.
+         * @return false when --help is requested or required arguments are missing/invalid.
          */
         bool init(int argc, char **argv);
     };

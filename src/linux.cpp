@@ -5,6 +5,8 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <cstdio>
+#include <cerrno>
 #include <sys/sysinfo.h>
 #include <sys/wait.h>
 #include <fcntl.h>
@@ -96,6 +98,10 @@ pid_t start_process(
     const std::string& output_file)
 {
     pid_t pid = fork();
+    if (pid < 0)
+    {
+        return 0;
+    }
     // parent process obtains pid of child process
     if (pid != 0)
     {
@@ -104,23 +110,32 @@ pid_t start_process(
     else
     {
         // child process obtains pid == 0
-        std::cout << "[info] child process " << getpid() << std::endl;
-
-        int in_fd = open(input_file.c_str(), O_RDONLY);
-        int out_fd = open(output_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
-        if (in_fd < 0 || out_fd < 0) {
-            std::cerr << "[error] open file failed" << std::endl;
-            abort();
+        ScopedFd in_fd(open(input_file.c_str(), O_RDONLY));
+        if (!in_fd)
+        {
+            perror("open input");
+            _exit(127);
         }
-        dup2(in_fd, STDIN_FILENO);
-        dup2(out_fd, STDOUT_FILENO);
-        dup2(out_fd, STDERR_FILENO);
-        close(in_fd);
-        close(out_fd);
+
+        ScopedFd out_fd(open(output_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644));
+        if (!out_fd)
+        {
+            perror("open output");
+            _exit(127);
+        }
+
+        if (dup2(in_fd.get(), STDIN_FILENO) == -1 ||
+            dup2(out_fd.get(), STDOUT_FILENO) == -1 ||
+            dup2(out_fd.get(), STDERR_FILENO) == -1)
+        {
+            perror("dup2");
+            _exit(127);
+        }
+
         char *const argv[] = {const_cast<char*>(filename.c_str()), nullptr};
-        execv(filename.c_str(), argv);
-        std::cout << "[info] child process " << getpid() << std::endl;
-        abort();
+        execvp(filename.c_str(), argv);
+        perror("execvp");
+        _exit(127);
     }
 }
 
@@ -133,5 +148,20 @@ bool is_up_process(pid_t pid)
 
 bool stop_process(pid_t pid)
 {
-    return kill(pid, SIGTERM) == 0;
+    if (kill(pid, 0) == 0 && kill(pid, SIGTERM) != 0)
+    {
+        return false;
+    }
+
+    int status = 0;
+    pid_t waited = waitpid(pid, &status, 0);
+    if (waited == -1)
+    {
+        return errno == ECHILD;
+    }
+    if (WIFEXITED(status))
+    {
+        return WEXITSTATUS(status) == 0;
+    }
+    return false;
 }
