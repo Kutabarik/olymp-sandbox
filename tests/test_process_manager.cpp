@@ -68,6 +68,17 @@ bool stop_process(process_id_t) {
     return true;
 }
 
+bool apply_cgroup_limit(process_id_t, size_t) {
+    return false;
+}
+
+bool did_cgroup_oom(process_id_t) {
+    return false;
+}
+
+void remove_cgroup(process_id_t) {
+}
+
 TEST_CASE("ProcessManager: constructor logs config once", "[process_manager][5.3]") {
     reset_process_stubs();
     const std::string log_path = "pm_test_log_53_once.log";

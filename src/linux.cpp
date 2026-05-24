@@ -11,8 +11,73 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <filesystem>
 
 namespace {
+
+/**
+ * @brief Helper to manage cgroup v2 memory limits.
+ * Requires root privileges to create and modify cgroups.
+ */
+class CgroupManager {
+public:
+    static std::filesystem::path group_path_for(pid_t pid) {
+        return std::filesystem::path("/sys/fs/cgroup") / ("sandbox_" + std::to_string(pid));
+    }
+
+    static bool apply_memory_limit(pid_t pid, size_t limit_bytes) {
+        const std::string base_path = "/sys/fs/cgroup";
+        std::error_code ec;
+        if (!std::filesystem::exists(base_path, ec) || ec) return false;
+
+        try {
+            std::filesystem::path group_path = group_path_for(pid);
+
+            // Create cgroup directory
+            if (!std::filesystem::exists(group_path)) {
+                if (!std::filesystem::create_directory(group_path)) return false;
+            }
+
+            // Set memory limit
+            std::ofstream limit_file(group_path / "memory.max");
+            if (!limit_file) return false;
+            limit_file << limit_bytes;
+            limit_file.close();
+
+            // Add process to cgroup
+            std::ofstream procs_file(group_path / "cgroup.procs");
+            if (!procs_file) return false;
+            procs_file << pid;
+            procs_file.close();
+
+            return true;
+        } catch (...) {
+            return false;
+        }
+    }
+
+    static bool did_oom_kill(pid_t pid) {
+        std::ifstream events_file(group_path_for(pid) / "memory.events");
+        if (!events_file) {
+            return false;
+        }
+
+        std::string key;
+        unsigned long long value = 0;
+        while (events_file >> key >> value) {
+            if (key == "oom_kill" || key == "oom_group_kill") {
+                return value > 0;
+            }
+        }
+
+        return false;
+    }
+
+    static void remove_group(pid_t pid) {
+        std::error_code ec;
+        std::filesystem::remove_all(group_path_for(pid), ec);
+    }
+};
 
 class ScopedFd {
 public:
@@ -164,4 +229,19 @@ bool stop_process(pid_t pid)
         return WEXITSTATUS(status) == 0;
     }
     return false;
+}
+
+bool apply_cgroup_limit(pid_t pid, size_t limit)
+{
+    return CgroupManager::apply_memory_limit(pid, limit);
+}
+
+bool did_cgroup_oom(pid_t pid)
+{
+    return CgroupManager::did_oom_kill(pid);
+}
+
+void remove_cgroup(pid_t pid)
+{
+    CgroupManager::remove_group(pid);
 }

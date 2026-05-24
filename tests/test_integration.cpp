@@ -9,6 +9,9 @@
 #include <string>
 #include <system_error>
 #include <thread>
+#if !defined(WIN32)
+#include <unistd.h>
+#endif
 
 namespace {
 
@@ -74,6 +77,17 @@ mc::config make_cfg(const std::string& input,
     cfg.memory_limit = memory_limit;
     cfg.time_limit = time_limit;
     return cfg;
+}
+
+bool can_run_cgroup_test() {
+#if defined(WIN32)
+    return false;
+#else
+    std::error_code ec;
+    return geteuid() == 0 &&
+           std::filesystem::exists("/sys/fs/cgroup/cgroup.controllers", ec) &&
+           std::filesystem::exists("/sys/fs/cgroup", ec);
+#endif
 }
 
 }  // namespace
@@ -164,6 +178,36 @@ TEST_CASE("Integration: memory limit is enforced", "[integration][9.4]") {
         REQUIRE(result.status_code == mc::result_info::STATUS::MEMORY_LIMIT);
     }
 
+}
+
+TEST_CASE("Integration: cgroup memory limit is enforced (root required)", "[integration][13.4]") {
+#if defined(WIN32)
+    SKIP("Integration tests run on Linux.");
+#endif
+
+    if (!can_run_cgroup_test()) {
+        SKIP("cgroup v2 memory tests require Linux root privileges.");
+    }
+
+    const std::string input_path = "integration_input_13_4.txt";
+    const std::string output_path = "integration_output_13_4.txt";
+    const std::string log_path = "integration_log_13_4.log";
+    const scoped_cleanup cleanup{input_path, output_path, log_path};
+
+    {
+        std::ofstream in(input_path);
+        in << "200 131072"; // 128 MB
+    }
+
+    {
+        // Set a very tight limit to force the cgroup memory controller to kill the process.
+        mc::process_manager manager(
+            make_cfg(input_path, output_path, 16ull * 1024ull * 1024ull, 2000),
+            log_path);
+        const mc::result_info result = manager.start_app();
+
+        REQUIRE(result.status_code == mc::result_info::STATUS::MEMORY_LIMIT);
+    }
 }
 
 TEST_CASE("Integration: stdin redirection works on Linux", "[integration][10.2]") {
