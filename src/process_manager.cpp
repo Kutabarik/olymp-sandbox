@@ -116,6 +116,15 @@ namespace mc
                 ? mc::result_info::STATUS::OK
                 : mc::result_info::STATUS::RUNTIME_ERROR;
 
+        if (result.status_code == mc::result_info::STATUS::OK) {
+            if (!std::filesystem::exists(config.output)) {
+                logger.error("Output file was not created: " + config.output);
+                result.status_code = mc::result_info::STATUS::RUNTIME_ERROR;
+            } else if (std::filesystem::file_size(config.output) == 0) {
+                logger.warn("Output file is empty: " + config.output);
+            }
+        }
+
         result.max_memory_used = max_memory;
         result.time_used = get_current_time() - start;
         if (result.status_code == mc::result_info::STATUS::OK)

@@ -49,7 +49,10 @@ std::int64_t get_process_memory(process_id_t) {
     return 1024;
 }
 
-process_id_t start_process(const std::string&, const std::string&, const std::string&) {
+process_id_t start_process(const std::string&, const std::string&, const std::string& output_file) {
+    {
+        std::ofstream out(output_file);
+    }
     return (process_id_t)(1);
 }
 
@@ -275,7 +278,7 @@ TEST_CASE("ProcessManager: create_process returns valid pid", "[process_manager]
     mc::config cfg;
     cfg.application = "fake_app.exe";
     cfg.input = input_path;
-    cfg.output = "testfiles/output_8.txt";
+    cfg.output = "pm_test_output_82.txt";
     cfg.memory_limit = 16000000;
     cfg.time_limit = 2000;
 
@@ -291,6 +294,7 @@ TEST_CASE("ProcessManager: create_process returns valid pid", "[process_manager]
 
     std::filesystem::remove(input_path);
     std::filesystem::remove(log_path);
+    std::filesystem::remove("pm_test_output_82.txt");
 }
 
 TEST_CASE("ProcessManager: is_process_up detects process lifecycle", "[process_manager][8.3]") {
@@ -309,7 +313,7 @@ TEST_CASE("ProcessManager: is_process_up detects process lifecycle", "[process_m
     mc::config cfg;
     cfg.application = "fake_app.exe";
     cfg.input = input_path;
-    cfg.output = "testfiles/output_8.txt";
+    cfg.output = "pm_test_output_83.txt";
     cfg.memory_limit = 16000000;
     cfg.time_limit = 2000;
 
@@ -323,4 +327,5 @@ TEST_CASE("ProcessManager: is_process_up detects process lifecycle", "[process_m
 
     std::filesystem::remove(input_path);
     std::filesystem::remove(log_path);
+    std::filesystem::remove("pm_test_output_83.txt");
 }

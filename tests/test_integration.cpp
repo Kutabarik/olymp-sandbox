@@ -220,3 +220,57 @@ TEST_CASE("Integration: stdout redirection works on Linux", "[integration][10.3]
     const std::string content = read_file(output_path);
     REQUIRE(content.find("allocated 1 KB successfully.") != std::string::npos);
 }
+
+TEST_CASE("Integration: output file is created on Linux", "[integration][11.2]") {
+#if defined(WIN32)
+    SKIP("Linux-specific test");
+#endif
+
+    const std::string input_path = "integration_input_11.2.txt";
+    const std::string output_path = "integration_output_11.2.txt";
+    const std::string log_path = "integration_log_11.2.log";
+    const scoped_cleanup cleanup{input_path, output_path, log_path};
+
+    {
+        std::ofstream in(input_path);
+        in << "10 1";
+    }
+
+    {
+        mc::process_manager manager(
+            make_cfg(input_path, output_path, 128ull * 1024ull * 1024ull, 1000),
+            log_path);
+        const mc::result_info result = manager.start_app();
+        REQUIRE(result.status_code == mc::result_info::STATUS::OK);
+    }
+
+    REQUIRE(std::filesystem::exists(output_path));
+}
+
+TEST_CASE("Integration: output file has content on Linux", "[integration][11.3]") {
+#if defined(WIN32)
+    SKIP("Linux-specific test");
+#endif
+
+    const std::string input_path = "integration_input_11.3.txt";
+    const std::string output_path = "integration_output_11.3.txt";
+    const std::string log_path = "integration_log_11.3.log";
+    const scoped_cleanup cleanup{input_path, output_path, log_path};
+
+    {
+        std::ofstream in(input_path);
+        in << "10 1";
+    }
+
+    {
+        mc::process_manager manager(
+            make_cfg(input_path, output_path, 128ull * 1024ull * 1024ull, 1000),
+            log_path);
+        const mc::result_info result = manager.start_app();
+        REQUIRE(result.status_code == mc::result_info::STATUS::OK);
+    }
+
+    REQUIRE(std::filesystem::file_size(output_path) > 0);
+    const std::string content = read_file(output_path);
+    REQUIRE(content.find("done after 10 ms.") != std::string::npos);
+}
