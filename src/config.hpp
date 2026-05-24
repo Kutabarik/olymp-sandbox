@@ -41,6 +41,12 @@ namespace mc
         config() = default;
         config(const config& object);
         config operator = (const config& object);
+        /**
+         * @brief Initialize config from command-line options.
+         *
+         * @return true when initialization succeeds.
+         * @return false when --help is requested or required arguments are missing/invalid.
+         */
         bool init(int argc, char **argv);
     };
 }
