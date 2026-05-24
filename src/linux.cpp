@@ -116,7 +116,8 @@ pid_t start_process(
         dup2(out_fd, STDERR_FILENO);
         close(in_fd);
         close(out_fd);
-        execvp(filename.c_str(), nullptr);
+        char *const argv[] = {const_cast<char*>(filename.c_str()), nullptr};
+        execv(filename.c_str(), argv);
         std::cout << "[info] child process " << getpid() << std::endl;
         abort();
     }

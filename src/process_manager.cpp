@@ -144,6 +144,8 @@ namespace mc
 
     bool process_manager::close_process(process_id_t pid) const
     {
+        if (!::is_up_process(pid))
+            return true;
         return ::stop_process(pid);
     }
 
