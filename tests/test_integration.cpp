@@ -47,6 +47,12 @@ private:
     std::vector<std::string> paths_;
 };
 
+std::string read_file(const std::string& path) {
+    std::ifstream in(path);
+    return std::string((std::istreambuf_iterator<char>(in)),
+                       std::istreambuf_iterator<char>());
+}
+
 std::string get_testapp_path() {
 #ifdef TESTAPP_PATH
     const std::string app = TESTAPP_PATH;
@@ -73,8 +79,8 @@ mc::config make_cfg(const std::string& input,
 }  // namespace
 
 TEST_CASE("Integration: testapp is compiled", "[integration][9.1]") {
-#if !defined(WIN32)
-    SKIP("Sprint 9 integration checks are currently Windows-focused.");
+#if defined(WIN32)
+    SKIP("Integration tests run on Linux.");
 #endif
 
     const std::string app_path = get_testapp_path();
@@ -83,8 +89,8 @@ TEST_CASE("Integration: testapp is compiled", "[integration][9.1]") {
 }
 
 TEST_CASE("Integration: testapp runs with valid input/output", "[integration][9.2]") {
-#if !defined(WIN32)
-    SKIP("Sprint 9 integration checks are currently Windows-focused.");
+#if defined(WIN32)
+    SKIP("Integration tests run on Linux.");
 #endif
 
     const std::string input_path = "integration_input_92.txt";
@@ -111,8 +117,8 @@ TEST_CASE("Integration: testapp runs with valid input/output", "[integration][9.
 }
 
 TEST_CASE("Integration: time limit is enforced", "[integration][9.3]") {
-#if !defined(WIN32)
-    SKIP("Sprint 9 integration checks are currently Windows-focused.");
+#if defined(WIN32)
+    SKIP("Integration tests run on Linux.");
 #endif
 
     const std::string input_path = "integration_input_93.txt";
@@ -136,8 +142,8 @@ TEST_CASE("Integration: time limit is enforced", "[integration][9.3]") {
 }
 
 TEST_CASE("Integration: memory limit is enforced", "[integration][9.4]") {
-#if !defined(WIN32)
-    SKIP("Sprint 9 integration checks are currently Windows-focused.");
+#if defined(WIN32)
+    SKIP("Integration tests run on Linux.");
 #endif
 
     const std::string input_path = "integration_input_94.txt";
@@ -158,4 +164,113 @@ TEST_CASE("Integration: memory limit is enforced", "[integration][9.4]") {
         REQUIRE(result.status_code == mc::result_info::STATUS::MEMORY_LIMIT);
     }
 
+}
+
+TEST_CASE("Integration: stdin redirection works on Linux", "[integration][10.2]") {
+#if defined(WIN32)
+    SKIP("Linux-specific test");
+#endif
+
+    const std::string input_path = "integration_input_10.2.txt";
+    const std::string output_path = "integration_output_10.2.txt";
+    const std::string log_path = "integration_log_10.2.log";
+    const scoped_cleanup cleanup{input_path, output_path, log_path};
+
+    {
+        std::ofstream in(input_path);
+        in << "10 1";
+    }
+
+    {
+        mc::process_manager manager(
+            make_cfg(input_path, output_path, 128ull * 1024ull * 1024ull, 1000),
+            log_path);
+        const mc::result_info result = manager.start_app();
+        REQUIRE(result.status_code == mc::result_info::STATUS::OK);
+    }
+
+    REQUIRE(std::filesystem::exists(output_path));
+    REQUIRE(wait_for_non_empty_file(output_path));
+}
+
+TEST_CASE("Integration: stdout redirection works on Linux", "[integration][10.3]") {
+#if defined(WIN32)
+    SKIP("Linux-specific test");
+#endif
+
+    const std::string input_path = "integration_input_10.3.txt";
+    const std::string output_path = "integration_output_10.3.txt";
+    const std::string log_path = "integration_log_10.3.log";
+    const scoped_cleanup cleanup{input_path, output_path, log_path};
+
+    {
+        std::ofstream in(input_path);
+        in << "10 1";
+    }
+
+    {
+        mc::process_manager manager(
+            make_cfg(input_path, output_path, 128ull * 1024ull * 1024ull, 1000),
+            log_path);
+        const mc::result_info result = manager.start_app();
+        REQUIRE(result.status_code == mc::result_info::STATUS::OK);
+    }
+
+    REQUIRE(std::filesystem::exists(output_path));
+    const std::string content = read_file(output_path);
+    REQUIRE(content.find("allocated 1 KB successfully.") != std::string::npos);
+}
+
+TEST_CASE("Integration: output file is created on Linux", "[integration][11.2]") {
+#if defined(WIN32)
+    SKIP("Linux-specific test");
+#endif
+
+    const std::string input_path = "integration_input_11.2.txt";
+    const std::string output_path = "integration_output_11.2.txt";
+    const std::string log_path = "integration_log_11.2.log";
+    const scoped_cleanup cleanup{input_path, output_path, log_path};
+
+    {
+        std::ofstream in(input_path);
+        in << "10 1";
+    }
+
+    {
+        mc::process_manager manager(
+            make_cfg(input_path, output_path, 128ull * 1024ull * 1024ull, 1000),
+            log_path);
+        const mc::result_info result = manager.start_app();
+        REQUIRE(result.status_code == mc::result_info::STATUS::OK);
+    }
+
+    REQUIRE(std::filesystem::exists(output_path));
+}
+
+TEST_CASE("Integration: output file has content on Linux", "[integration][11.3]") {
+#if defined(WIN32)
+    SKIP("Linux-specific test");
+#endif
+
+    const std::string input_path = "integration_input_11.3.txt";
+    const std::string output_path = "integration_output_11.3.txt";
+    const std::string log_path = "integration_log_11.3.log";
+    const scoped_cleanup cleanup{input_path, output_path, log_path};
+
+    {
+        std::ofstream in(input_path);
+        in << "10 1";
+    }
+
+    {
+        mc::process_manager manager(
+            make_cfg(input_path, output_path, 128ull * 1024ull * 1024ull, 1000),
+            log_path);
+        const mc::result_info result = manager.start_app();
+        REQUIRE(result.status_code == mc::result_info::STATUS::OK);
+    }
+
+    REQUIRE(std::filesystem::file_size(output_path) > 0);
+    const std::string content = read_file(output_path);
+    REQUIRE(content.find("done after 10 ms.") != std::string::npos);
 }

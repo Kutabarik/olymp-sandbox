@@ -86,7 +86,7 @@ std::int64_t get_process_memory(pid_t pid)
             std::istringstream iss(line);
             std::string label, value;
             iss >> label >> value;
-            return std::stol(value);
+            return std::stol(value) * 1024;  // Convert kB to bytes
         }
     }
     return -2; // Error: memory usage not found
@@ -141,7 +141,9 @@ pid_t start_process(
 
 bool is_up_process(pid_t pid)
 {
-    return kill(pid, 0) == 0;
+    int status;
+    pid_t result = waitpid(pid, &status, WNOHANG);
+    return result == 0;
 }
 
 bool stop_process(pid_t pid)

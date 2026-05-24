@@ -301,6 +301,7 @@ TEST_CASE("ProcessManager: create_process returns valid pid", "[process_manager]
     std::filesystem::remove(input_path);
     std::filesystem::remove(output_path);
     std::filesystem::remove(log_path);
+    std::filesystem::remove("pm_test_output_82.txt");
 }
 
 TEST_CASE("ProcessManager: is_process_up detects process lifecycle", "[process_manager][8.3]") {

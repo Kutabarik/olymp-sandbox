@@ -1,86 +1,73 @@
 # olymp-sandbox
 
-## About
+Sandbox for securely running programming contest solutions with resource limits.
 
-This project is a program for organizing programming Olympiads. This program allows participants to send their solutions as files to the server, where a PHP script compiles them (if necessary) into an executable file.
+## Quick Start
 
-Next, the C++ program runs the executable file in a separate thread and runs it through predefined tests. Each test verifies the correctness of the input and output data under the constraints set by the condition in execution time and memory consumption.
-
-The results of testing participants' solutions are stored in a database, and participants can see their results on a web page.
-
-This program is designed to organize programming Olympiads and helps automate the process of testing participants' solutions. It allows you to save time and effort of the organizers, and also ensures the accuracy and reliability of testing.
-
-## Project requirements
-
-- gcc >= 12.2
-- cmake >= 3.10.0
-- ...
-
-## Build
-
-### makefile (for MSYS)
-
-The project has simple `Makefile.msys`. For starting, clone project, switch to the project directory and make it.
-
-Make options:
-
-- `make`          - show help
-- `make all`      - build and test
-- `make build`    - build app
-- `make clean`    - remove binary and object files
-- `make install`  - install app in environment
-- `make pre-test` - compile test application
-- `make test`     - run tests
-- `make test-all` - compile test app and run tests
+### Native (Linux / MSYS2)
 
 ```bash
-git clone https://github.com/Kutabarik/olymp-sandbox.git
-
-cd olymp-sandbox
-
-make -f Makefile.msys build
+cmake -S . -B build
+cmake --build build
+./build/sandbox --app=./build/testapp --time=1s --memory=16m --input=input.txt --output=output.txt
 ```
 
-You can run tests:
+### Docker
 
 ```bash
-make -f Makefile.msys test 
+# Build and run tests
+docker build --target test -t olymp-sandbox-test .
+docker run olymp-sandbox-test
+
+# Build release image
+docker build --target release -t olymp-sandbox-release .
+docker run olymp-sandbox-release --app=/testapp --time=1s --memory=16m --input=/input.txt --output=/output.txt
 ```
 
-Or clean project:
+## Build Targets
+
+| Target | Description |
+|--------|-------------|
+| `sandbox` | Main application |
+| `testapp` | Test application used in integration tests |
+| `run_tests` | Unit test suite (50 tests, stubs OS) |
+| `run_integration_tests` | Integration test suite (Linux) |
+
+## Test
 
 ```bash
-make -f Makefile.msys clean 
+# Unit tests
+cmake --build build --target run_tests
+ctest --test-dir build --output-on-failure
+
+# Integration tests (Linux only)
+cmake --build build --target run_integration_tests
+ctest --test-dir build --test-dir build --output-on-failure
 ```
 
-### cmake
+## CLI Options
 
-You can also use cmake tool for build. Recomended scenario is:
+| Key | Description | Example |
+|-----|-------------|---------|
+| `--app` | Path to the executable | `--app=./solution` |
+| `--time` | Time limit (ms/s/m) | `--time=2s` |
+| `--memory` | Memory limit (b/k/m) | `--memory=64m` |
+| `--input` | Input file path | `--input=tests/01.in` |
+| `--output` | Output file path | `--output=tests/01.out` |
+| `--help` | Show help message | `--help` |
 
-```bash
-git clone https://github.com/Kutabarik/olymp-sandbox.git
+## Requirements
 
-cd olymp-sandbox
-mkdir build
-cd build
+- CMake >= 3.10
+- GCC >= 12.2 (C++20)
+- Linux (for integration tests and resource isolation)
 
-cmake ..
-make
-```
+## CI
 
-## Usage
+GitHub Actions builds and tests on both Ubuntu (GCC) and Windows (MinGW).
 
-In the `bin` directory `olymp-sandbox` application will be created, this application supports the following command line keys:
+See `.github/workflows/build.yml` for details.
 
-- `help`        - help message
-- `app`         - name of managed application
-- `time`        - max execution time, supported suffixes: milliseconds (ms, default) or seconds (s) or minutes (m)
-- `memory`      - max memory usage, supported prefixes: bytes (b, default), kilobytes (k) or megabytes (m)
-- `input`       - input data file for application
-- `output`      - output data file for application
+## Architecture
 
-Usage sample:
-
-```bash
-olymp-sandbox --app=/path/to/app --time=1s --memory=16m --input=/path/to/test/01-input.txt --output=path/to/test/01-output.txt
-```
+See [docs/architecture.md](docs/architecture.md) for a full description of components, data flow, and test strategy.
