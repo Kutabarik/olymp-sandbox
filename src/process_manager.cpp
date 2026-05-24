@@ -91,9 +91,9 @@ namespace mc
             }
             int64_t tmp_mem = get_process_memory(pid);
             if (tmp_mem < 0) {
-                logger.error("Failed to get process memory");
-                result.status_code = mc::result_info::STATUS::RUNTIME_ERROR;
-                break;
+                // Process may have just exited (zombie has no VmSize);
+                // is_process_up will catch it on next iteration.
+                continue;
             }
             const uint64_t tmp_mem_u64 = static_cast<uint64_t>(tmp_mem);
             if (tmp_mem_u64 > max_memory)

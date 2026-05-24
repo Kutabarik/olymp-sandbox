@@ -84,7 +84,7 @@ std::int64_t get_process_memory(pid_t pid)
             std::istringstream iss(line);
             std::string label, value;
             iss >> label >> value;
-            return std::stol(value);
+            return std::stol(value) * 1024;  // Convert kB to bytes
         }
     }
     return -2; // Error: memory usage not found
