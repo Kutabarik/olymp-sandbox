@@ -49,7 +49,11 @@ std::int64_t get_process_memory(process_id_t) {
     return 1024;
 }
 
-process_id_t start_process(const std::string&, const std::string&, const std::string&) {
+process_id_t start_process(const std::string&, const std::string&, const std::string& output_file) {
+    std::ofstream out(output_file);
+    if (out) {
+        out << "ok";
+    }
     return (process_id_t)(1);
 }
 
@@ -97,6 +101,7 @@ TEST_CASE("ProcessManager: start_app does not duplicate init logs", "[process_ma
     reset_process_stubs();
     const std::string log_path = "pm_test_log_53_start.log";
     const std::string input_path = "pm_test_input_53_start.txt";
+    const std::string output_path = "pm_test_output_53_start.txt";
 
     if (std::filesystem::exists(log_path)) {
         std::filesystem::remove(log_path);
@@ -109,7 +114,7 @@ TEST_CASE("ProcessManager: start_app does not duplicate init logs", "[process_ma
     mc::config cfg;
     cfg.application = "fake_app.exe";
     cfg.input = input_path;
-    cfg.output = "testfiles/output_process_manager.txt";
+    cfg.output = output_path;
     cfg.memory_limit = 16000000;
     cfg.time_limit = 2000;
 
@@ -123,6 +128,7 @@ TEST_CASE("ProcessManager: start_app does not duplicate init logs", "[process_ma
     }
 
     std::filesystem::remove(input_path);
+    std::filesystem::remove(output_path);
     std::filesystem::remove(log_path);
 }
 
@@ -263,6 +269,7 @@ TEST_CASE("ProcessManager: create_process returns valid pid", "[process_manager]
     reset_process_stubs();
     const std::string log_path = "pm_test_log_82.log";
     const std::string input_path = "pm_test_input_82.txt";
+    const std::string output_path = "pm_test_output_82.txt";
 
     if (std::filesystem::exists(log_path)) {
         std::filesystem::remove(log_path);
@@ -275,7 +282,7 @@ TEST_CASE("ProcessManager: create_process returns valid pid", "[process_manager]
     mc::config cfg;
     cfg.application = "fake_app.exe";
     cfg.input = input_path;
-    cfg.output = "testfiles/output_8.txt";
+    cfg.output = output_path;
     cfg.memory_limit = 16000000;
     cfg.time_limit = 2000;
 
@@ -290,6 +297,7 @@ TEST_CASE("ProcessManager: create_process returns valid pid", "[process_manager]
     }
 
     std::filesystem::remove(input_path);
+    std::filesystem::remove(output_path);
     std::filesystem::remove(log_path);
 }
 
@@ -297,6 +305,7 @@ TEST_CASE("ProcessManager: is_process_up detects process lifecycle", "[process_m
     reset_process_stubs();
     const std::string log_path = "pm_test_log_83.log";
     const std::string input_path = "pm_test_input_83.txt";
+    const std::string output_path = "pm_test_output_83.txt";
 
     if (std::filesystem::exists(log_path)) {
         std::filesystem::remove(log_path);
@@ -309,7 +318,7 @@ TEST_CASE("ProcessManager: is_process_up detects process lifecycle", "[process_m
     mc::config cfg;
     cfg.application = "fake_app.exe";
     cfg.input = input_path;
-    cfg.output = "testfiles/output_8.txt";
+    cfg.output = output_path;
     cfg.memory_limit = 16000000;
     cfg.time_limit = 2000;
 
@@ -322,5 +331,40 @@ TEST_CASE("ProcessManager: is_process_up detects process lifecycle", "[process_m
     }
 
     std::filesystem::remove(input_path);
+    std::filesystem::remove(output_path);
     std::filesystem::remove(log_path);
+}
+
+TEST_CASE("ProcessManager: missing output file returns runtime error", "[process_manager][8.4]") {
+    reset_process_stubs();
+    const std::string log_path = "pm_test_log_84.log";
+    const std::string input_path = "pm_test_input_84.txt";
+    const std::string output_path = "pm_missing_dir_84/output.txt";
+
+    if (std::filesystem::exists(log_path)) {
+        std::filesystem::remove(log_path);
+    }
+    std::filesystem::remove_all("pm_missing_dir_84");
+
+    {
+        std::ofstream f(input_path);
+        f << "test data";
+    }
+
+    mc::config cfg;
+    cfg.application = "fake_app.exe";
+    cfg.input = input_path;
+    cfg.output = output_path;
+    cfg.memory_limit = 16000000;
+    cfg.time_limit = 2000;
+
+    {
+        mc::process_manager manager(cfg, log_path);
+        mc::result_info result = manager.start_app();
+        REQUIRE(result.status_code == mc::result_info::STATUS::RUNTIME_ERROR);
+    }
+
+    std::filesystem::remove(input_path);
+    std::filesystem::remove(log_path);
+    std::filesystem::remove_all("pm_missing_dir_84");
 }

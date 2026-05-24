@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 #include <filesystem>
+#include <system_error>
 
 /**
  * @brief OS specific functions
@@ -118,6 +119,27 @@ namespace mc
 
         result.max_memory_used = max_memory;
         result.time_used = get_current_time() - start;
+
+        if (result.status_code == mc::result_info::STATUS::OK)
+        {
+            std::error_code ec;
+            if (!std::filesystem::exists(config.output, ec) || ec)
+            {
+                logger.error("Output file does not exist: " + config.output);
+                result.status_code = mc::result_info::STATUS::RUNTIME_ERROR;
+            }
+            else if (!std::filesystem::is_regular_file(config.output, ec) || ec)
+            {
+                logger.error("Output path is not a regular file: " + config.output);
+                result.status_code = mc::result_info::STATUS::RUNTIME_ERROR;
+            }
+            else if (std::filesystem::file_size(config.output, ec) == 0 || ec)
+            {
+                logger.error("Output file is empty: " + config.output);
+                result.status_code = mc::result_info::STATUS::RUNTIME_ERROR;
+            }
+        }
+
         if (result.status_code == mc::result_info::STATUS::OK)
             logger.info("end guard process");
         return result;
