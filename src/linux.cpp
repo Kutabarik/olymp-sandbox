@@ -105,11 +105,18 @@ pid_t start_process(
         // child process obtains pid == 0
         std::cout << "[info] child process " << getpid() << std::endl;
 
-        // int in = open(input_file.c_str(), O_RDONLY);
-        // int out = open(output_file.c_str(), O_WRONLY);
-        // dup2(in, STDIN_FILENO);
-        // dup2(out, STDOUT_FILENO);
-        execv(filename.c_str(), nullptr);
+        int in_fd = open(input_file.c_str(), O_RDONLY);
+        int out_fd = open(output_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (in_fd < 0 || out_fd < 0) {
+            std::cerr << "[error] open file failed" << std::endl;
+            abort();
+        }
+        dup2(in_fd, STDIN_FILENO);
+        dup2(out_fd, STDOUT_FILENO);
+        dup2(out_fd, STDERR_FILENO);
+        close(in_fd);
+        close(out_fd);
+        execvp(filename.c_str(), nullptr);
         std::cout << "[info] child process " << getpid() << std::endl;
         abort();
     }

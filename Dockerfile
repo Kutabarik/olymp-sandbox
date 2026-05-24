@@ -1,19 +1,27 @@
-# compile project for ubuntu
-FROM debian:buster as builder
+# olymp-sandbox — multistage build
+# Usage:
+#   docker build --target builder -t olymp-sandbox .
+#   docker build --target test -t olymp-sandbox-test .
+#   docker run olymp-sandbox-test
+#   docker build --target release -t olymp-sandbox-release .
 
-# Install dependencies
-RUN apt-get update && apt-get install -y cmake g++
+# Stage 1: Build all targets
+FROM debian:bookworm AS builder
 
-# Copy source code
-COPY . /source/
+RUN apt-get update && apt-get install -y cmake g++ make
 
 WORKDIR /source
+COPY . .
 
-# Compile
-RUN mkdir build && cd build && cmake .. && make
+RUN cmake -S . -B build && cmake --build build --parallel
 
-# copy the binary to a new image
-FROM scratch
+# Stage 2: Run tests
+FROM builder AS test
+
+CMD ctest --test-dir build --output-on-failure
+
+# Stage 3: Release binary
+FROM scratch AS release
 
 COPY --from=builder /source/build/sandbox /sandbox
 
