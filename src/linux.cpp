@@ -27,7 +27,8 @@ public:
 
     static bool apply_memory_limit(pid_t pid, size_t limit_bytes) {
         const std::string base_path = "/sys/fs/cgroup";
-        if (!std::filesystem::exists(base_path)) return false;
+        std::error_code ec;
+        if (!std::filesystem::exists(base_path, ec) || ec) return false;
 
         try {
             std::filesystem::path group_path = group_path_for(pid);
