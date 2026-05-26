@@ -75,7 +75,7 @@
 
 ---
 
-## Спринт 10-12 (Недели 19-24) — Linux и документация
+## Спринт 10-12 (Недели 19-24) — Linux и документация ✅
 
 - [x] **10.1** Раскомментировать stdin/stdout linux.cpp (2 SP)
 - [x] **10.2** Тест: stdin перенаправление (3 SP)
@@ -84,9 +84,9 @@
 - [x] **11.1** Валидация output файла (2 SP)
 - [x] **11.2** Тест: output создается (2 SP)
 - [x] **11.3** Тест: output содержит данные (2 SP)
-- [ ] **12.1** Обновить README (2 SP)
-- [ ] **12.2** docs/architecture.md (5 SP)
-- [ ] **12.3** Документация в коде (3 SP)
+- [x] **12.1** Обновить README (2 SP)
+- [x] **12.2** docs/architecture.md (5 SP)
+- [x] **12.3** Документация в коде (3 SP)
 
 ---
 
@@ -94,14 +94,14 @@
 
 ⚠️ **Требует root**
 
-- [ ] **13.1** Исследовать cgroups API (3 SP)
-- [ ] **13.2** Helper для создания cgroup (5 SP)
-- [ ] **13.3** Ограничение памяти через cgroups (5 SP)
-- [ ] **13.4** Тест: memory limit cgroups (5 SP)
-- [ ] **14.1** Исследовать unshare() API (3 SP)
-- [ ] **14.2** Изоляция namespace (5 SP)
-- [ ] **14.3** Интеграция namespace в start_process (5 SP)
-- [ ] **14.4** Тест: изоляция namespace (5 SP)
+- [x] **13.1** Исследовать cgroups API (3 SP)
+- [x] **13.2** Helper для создания cgroup (5 SP)
+- [x] **13.3** Ограничение памяти через cgroups (5 SP)
+- [x] **13.4** Тест: memory limit cgroups (5 SP)
+- [x] **14.1** Исследовать unshare() API (3 SP)
+- [x] **14.2** Изоляция namespace в clone_child (5 SP)
+- [x] **14.3** Интеграция namespace в start_process (try clone / fallback fork) (5 SP)
+- [x] **14.4** Тест: изоляция namespace (root required) (5 SP)
 - [ ] **15.1** Документировать требования Linux (2 SP)
 - [ ] **15.2** Инструкция запуска с правами (2 SP)
 - [ ] **15.3** troubleshooting.md (3 SP)

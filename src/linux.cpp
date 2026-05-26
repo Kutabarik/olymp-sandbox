@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <cstddef>
 #include <iostream>
 #include <fstream>
@@ -7,7 +9,9 @@
 #include <thread>
 #include <cstdio>
 #include <cerrno>
-#include <sys/sysinfo.h>
+#include <sched.h>
+#include <sys/mman.h>
+#include <sys/mount.h>
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -126,6 +130,46 @@ private:
     int fd_;
 };
 
+struct clone_child_args {
+    int in_fd;
+    int out_fd;
+    std::string filename;
+};
+
+static int clone_child(void *arg) {
+    clone_child_args *a = static_cast<clone_child_args*>(arg);
+
+    // Make mount namespace private so mounts don't propagate to parent
+    if (mount("", "/", "", MS_PRIVATE | MS_REC, NULL) != 0) {
+        _exit(124);
+    }
+
+    // Remount /proc to reflect the new PID namespace
+    umount2("/proc", MNT_DETACH);
+    if (mount("proc", "/proc", "proc", 0, NULL) != 0) {
+        _exit(124);
+    }
+
+    // Redirect stdin/stdout/stderr
+    if (dup2(a->in_fd, STDIN_FILENO) < 0 ||
+        dup2(a->out_fd, STDOUT_FILENO) < 0 ||
+        dup2(a->out_fd, STDERR_FILENO) < 0) {
+        _exit(125);
+    }
+    close(a->in_fd);
+    close(a->out_fd);
+
+    // Drop privileges to nobody
+    if (setgid(65534) != 0 || setuid(65534) != 0) {
+        _exit(126);
+    }
+
+    // Execute target program
+    char *const argv[] = {const_cast<char*>(a->filename.c_str()), nullptr};
+    execv(a->filename.c_str(), argv);
+    _exit(127);
+}
+
 }  // namespace
 
 /**
@@ -162,46 +206,82 @@ pid_t start_process(
     const std::string& input_file,
     const std::string& output_file)
 {
+    ScopedFd in_fd(open(input_file.c_str(), O_RDONLY));
+    if (!in_fd)
+    {
+        return 0;
+    }
+
+    ScopedFd out_fd(open(output_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644));
+    if (!out_fd)
+    {
+        return 0;
+    }
+
+    // Try to create an isolated process using clone() with namespaces.
+    // Requires root / CAP_SYS_ADMIN. Falls back to fork() if unavailable.
+    {
+        const size_t stack_size = 1024 * 1024;
+        void *stack = mmap(NULL, stack_size, PROT_READ | PROT_WRITE,
+                           MAP_PRIVATE | MAP_ANONYMOUS | MAP_STACK, -1, 0);
+        if (stack != MAP_FAILED)
+        {
+            clone_child_args args = {in_fd.get(), out_fd.get(), filename};
+            pid_t pid = clone(clone_child, static_cast<char*>(stack) + stack_size,
+                              CLONE_NEWPID | CLONE_NEWNS | CLONE_NEWNET | SIGCHLD,
+                              &args);
+            if (pid > 0)
+            {
+                // Namespaced process created successfully.
+                // Since CLONE_VM is not used, the child does not share the
+                // parent's address space, so it is safe to unmap the stack
+                // in the parent after clone() returns.
+                munmap(stack, stack_size);
+                return pid;
+            }
+            // clone() failed (no privileges), clean up stack
+            munmap(stack, stack_size);
+        }
+    }
+
+    // Fallback to fork() when namespaces are unavailable
     pid_t pid = fork();
     if (pid < 0)
     {
         return 0;
     }
-    // parent process obtains pid of child process
     if (pid != 0)
     {
         return pid;
     }
-    else
+
+    // Child (fork path)
+    ScopedFd child_in(open(input_file.c_str(), O_RDONLY));
+    if (!child_in)
     {
-        // child process obtains pid == 0
-        ScopedFd in_fd(open(input_file.c_str(), O_RDONLY));
-        if (!in_fd)
-        {
-            perror("open input");
-            _exit(127);
-        }
-
-        ScopedFd out_fd(open(output_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644));
-        if (!out_fd)
-        {
-            perror("open output");
-            _exit(127);
-        }
-
-        if (dup2(in_fd.get(), STDIN_FILENO) == -1 ||
-            dup2(out_fd.get(), STDOUT_FILENO) == -1 ||
-            dup2(out_fd.get(), STDERR_FILENO) == -1)
-        {
-            perror("dup2");
-            _exit(127);
-        }
-
-        char *const argv[] = {const_cast<char*>(filename.c_str()), nullptr};
-        execvp(filename.c_str(), argv);
-        perror("execvp");
+        perror("open input");
         _exit(127);
     }
+
+    ScopedFd child_out(open(output_file.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644));
+    if (!child_out)
+    {
+        perror("open output");
+        _exit(127);
+    }
+
+    if (dup2(child_in.get(), STDIN_FILENO) == -1 ||
+        dup2(child_out.get(), STDOUT_FILENO) == -1 ||
+        dup2(child_out.get(), STDERR_FILENO) == -1)
+    {
+        perror("dup2");
+        _exit(127);
+    }
+
+    char *const argv[] = {const_cast<char*>(filename.c_str()), nullptr};
+    execv(filename.c_str(), argv);
+    perror("execv");
+    _exit(127);
 }
 
 bool is_up_process(pid_t pid)
