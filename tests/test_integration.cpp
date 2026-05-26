@@ -9,8 +9,10 @@
 #include <string>
 #include <system_error>
 #include <thread>
+#include <cstring>
 #if !defined(WIN32)
 #include <unistd.h>
+#include <sys/wait.h>
 #endif
 
 namespace {
@@ -289,6 +291,62 @@ TEST_CASE("Integration: output file is created on Linux", "[integration][11.2]")
     }
 
     REQUIRE(std::filesystem::exists(output_path));
+}
+
+#if !defined(WIN32)
+// Forward declarations of platform functions from linux.cpp
+pid_t start_process(const std::string& filename,
+                    const std::string& input_file,
+                    const std::string& output_file);
+bool namespace_differs(const std::string& ns_type, pid_t child_pid) {
+    std::string child_link = "/proc/" + std::to_string(child_pid) + "/ns/" + ns_type;
+    std::string self_link = "/proc/self/ns/" + ns_type;
+    char child_buf[256] = {}, self_buf[256] = {};
+    if (readlink(child_link.c_str(), child_buf, sizeof(child_buf) - 1) < 0) return false;
+    if (readlink(self_link.c_str(), self_buf, sizeof(self_buf) - 1) < 0) return false;
+    return strcmp(child_buf, self_buf) != 0;
+}
+#endif
+
+TEST_CASE("Integration: namespace isolation works (root required)", "[integration][14.4]") {
+#if defined(WIN32)
+    SKIP("Namespace isolation tests run on Linux only.");
+#else
+    const std::string input_path = "integration_input_14_4.txt";
+    const std::string output_path = "integration_output_14_4.txt";
+    const scoped_cleanup cleanup{input_path, output_path};
+
+    {
+        std::ofstream in(input_path);
+        in << "10 1";
+    }
+
+    pid_t pid = start_process(get_testapp_path(), input_path, output_path);
+    REQUIRE(pid > 0);
+
+    // Verify PID, mount, and network namespace isolation
+    bool root = geteuid() == 0;
+    if (root) {
+        // Allow setup time for clone child to complete mount namespace operations
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        REQUIRE(namespace_differs("pid", pid));
+        REQUIRE(namespace_differs("mnt", pid));
+        REQUIRE(namespace_differs("net", pid));
+    }
+
+    // Wait for process to complete and reap it
+    int status = 0;
+    for (int i = 0; i < 100; ++i) {
+        pid_t ret = waitpid(pid, &status, WNOHANG);
+        if (ret == pid) break;
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    REQUIRE(WIFEXITED(status));
+    REQUIRE(WEXITSTATUS(status) == 0);
+
+    REQUIRE(std::filesystem::exists(output_path));
+    REQUIRE(std::filesystem::file_size(output_path) > 0);
+#endif
 }
 
 TEST_CASE("Integration: output file has content on Linux", "[integration][11.3]") {
