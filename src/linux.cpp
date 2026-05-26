@@ -233,8 +233,10 @@ pid_t start_process(
             if (pid > 0)
             {
                 // Namespaced process created successfully.
-                // The child stack is intentionally not freed here; the kernel
-                // reclaims it when the parent process exits.
+                // Since CLONE_VM is not used, the child does not share the
+                // parent's address space, so it is safe to unmap the stack
+                // in the parent after clone() returns.
+                munmap(stack, stack_size);
                 return pid;
             }
             // clone() failed (no privileges), clean up stack
