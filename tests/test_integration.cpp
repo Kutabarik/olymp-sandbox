@@ -117,19 +117,26 @@ bool can_run_cgroup_test() {
     const auto probe_dir = cgroup_root / "olymp_sandbox_probe";
 
     std::filesystem::remove_all(probe_dir, ec);
+    if (ec) {
+        return false;
+    }
     if (!std::filesystem::create_directory(probe_dir, ec)) {
         return false;
     }
 
     auto cleanup = [&]() {
-        std::error_code ignore_ec;
-        std::filesystem::remove_all(probe_dir, ignore_ec);
+        std::error_code cleanup_ec;
+        std::filesystem::remove_all(probe_dir, cleanup_ec);
     };
 
     {
         std::ofstream out(subtree_control, std::ios::app);
         if (out) {
             out << "+memory";
+            if (!out.good()) {
+                cleanup();
+                return false;
+            }
         }
     }
 
