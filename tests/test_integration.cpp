@@ -130,7 +130,7 @@ bool can_run_cgroup_test() {
     };
 
     {
-        std::ofstream out(subtree_control, std::ios::app);
+        std::ofstream out(subtree_control);
         if (out) {
             out << "+memory";
             if (!out.good()) {
