@@ -126,13 +126,22 @@ One of these files is compiled depending on the target OS (detected via CMake's 
 
 | Function | Linux | Windows |
 |----------|-------|---------|
-| `start_process(filename, input, output)` | `fork()` + `execvp()`, stdin/stdout via `dup2()` | `CreateProcess()` with `CreateFile` handles, job object |
+| `start_process(filename, input, output)` | `clone()` with `CLONE_NEWPID\|NEWNS\|NEWNET` + `dup2()`; falls back to `fork()` | `CreateProcess()` with `CreateFile` handles, job object |
 | `get_process_memory(pid)` | Reads `/proc/pid/status` VmSize | `GetProcessMemoryInfo()` WorkingSetSize |
-| `is_up_process(pid)` | `kill(pid, 0)` | `GetExitCodeProcess()` → STILL_ACTIVE |
-| `stop_process(pid)` | `kill(pid, SIGTERM)` | `TerminateProcess()` + `CloseHandle()` |
+| `is_up_process(pid)` | `waitpid(pid, WNOHANG)` | `GetExitCodeProcess()` → STILL_ACTIVE |
+| `stop_process(pid)` | `kill(pid, SIGTERM)` + `waitpid()` | `TerminateProcess()` + `CloseHandle()` |
 | `get_current_time()` | `clock_gettime()` / `gettimeofday()` | `GetTickCount64()` |
+| `apply_cgroup_limit(pid, limit)` | cgroup v2 `memory.max` | — |
+| `did_cgroup_oom(pid)` | cgroup v2 `memory.events` oom_kill | — |
+| `remove_cgroup(pid)` | rmdir `/sys/fs/cgroup/sandbox_PID` | — |
+
+On Linux, `start_process()` attempts `clone()` with PID, mount, and network namespace isolation. The child remounts `/proc` inside its private mount namespace and drops privileges to `nobody` (UID/GID 65534). If `clone()` fails (no `CAP_SYS_ADMIN`), it falls back to `fork()`.
 
 On Windows, the child process is assigned to a **Job Object** (`JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`) so that all child processes are terminated when the job handle is closed.
+
+cgroup v2 memory limits require root and a cgroup v2 filesystem at `/sys/fs/cgroup`. If unavailable, memory limits are enforced via polling (`get_process_memory()` every cycle), which is less precise.
+
+See [troubleshooting.md](troubleshooting.md) for common issues.
 
 ## Directory Structure
 
@@ -161,7 +170,8 @@ On Windows, the child process is assigned to a **Job Object** (`JOB_OBJECT_LIMIT
 │   ├── architecture.md          # Architecture overview
 │   ├── memory_measurement_1.md  # Windows memory measurement research
 │   ├── memory_measurement_2.md  # Cross-platform memory/CPU measurement
-│   └── thread_measurement.md    # Thread time measurement research
+│   ├── thread_measurement.md    # Thread time measurement research
+│   └── troubleshooting.md       # Known issues and recovery steps
 ├── .github/workflows/build.yml  # CI pipeline
 └── .dockerignore
 ```
