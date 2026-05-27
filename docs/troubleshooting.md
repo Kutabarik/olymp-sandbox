@@ -52,7 +52,7 @@
 
 ### Unit tests fail with `RUNTIME_ERROR` status
 
-**Cause:** The test stub does not create the output file. Verify that `start_process` stub in `test_process_manager.cpp` creates the output file.
+**Cause:** In the current test suite, `tests/test_process_manager.cpp` already creates and writes the output file in its `start_process` stub. If you see this failure, check for local modifications or an out-of-date branch where that stub no longer creates the expected output file.
 
 ### `VmSize` not found in `/proc/PID/status`
 
