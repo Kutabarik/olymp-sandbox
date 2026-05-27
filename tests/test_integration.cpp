@@ -92,21 +92,62 @@ bool can_run_cgroup_test() {
     std::error_code ec;
     const std::filesystem::path cgroup_root = "/sys/fs/cgroup";
     const std::filesystem::path controllers = cgroup_root / "cgroup.controllers";
+    const std::filesystem::path subtree_control = cgroup_root / "cgroup.subtree_control";
 
     if (!std::filesystem::exists(cgroup_root, ec) ||
-        !std::filesystem::exists(controllers, ec)) {
+        !std::filesystem::exists(controllers, ec) ||
+        !std::filesystem::exists(subtree_control, ec)) {
         return false;
     }
 
-    std::ifstream in(controllers);
-    if (!in) {
+    {
+        std::ifstream in(controllers);
+        if (!in) {
+            return false;
+        }
+
+        std::string contents((std::istreambuf_iterator<char>(in)),
+                             std::istreambuf_iterator<char>());
+
+        if (contents.find("memory") == std::string::npos) {
+            return false;
+        }
+    }
+
+    const auto probe_dir = cgroup_root / "olymp_sandbox_probe";
+
+    std::filesystem::remove_all(probe_dir, ec);
+    if (!std::filesystem::create_directory(probe_dir, ec)) {
         return false;
     }
 
-    std::string contents((std::istreambuf_iterator<char>(in)),
-                         std::istreambuf_iterator<char>());
+    auto cleanup = [&]() {
+        std::error_code ignore_ec;
+        std::filesystem::remove_all(probe_dir, ignore_ec);
+    };
 
-    return contents.find("memory") != std::string::npos;
+    {
+        std::ofstream out(subtree_control, std::ios::app);
+        if (out) {
+            out << "+memory";
+        }
+    }
+
+    {
+        std::ofstream out(probe_dir / "memory.max");
+        if (!out) {
+            cleanup();
+            return false;
+        }
+        out << (16ull * 1024ull * 1024ull);
+        if (!out.good()) {
+            cleanup();
+            return false;
+        }
+    }
+
+    cleanup();
+    return true;
 #endif
 }
 
@@ -225,7 +266,7 @@ TEST_CASE("Integration: cgroup memory limit is enforced (root required)", "[inte
             make_cfg(input_path, output_path, 16ull * 1024ull * 1024ull, 2000),
             log_path);
         const mc::result_info result = manager.start_app();
-
+        INFO("Expected cgroup-enforced memory kill, got status code: " << static_cast<int>(result.status_code));
         REQUIRE(result.status_code == mc::result_info::STATUS::MEMORY_LIMIT);
     }
 }
