@@ -58,9 +58,48 @@ ctest --test-dir build --test-dir build --output-on-failure
 
 ## Requirements
 
+### Build-Time
+
 - CMake >= 3.10
 - GCC >= 12.2 (C++20)
-- Linux (for integration tests and resource isolation)
+
+### Linux Kernel (for resource isolation)
+
+| Feature | Minimum Kernel | Required Privilege |
+|---------|---------------|-------------------|
+| PID namespace (`CLONE_NEWPID`) | 2.6.24 | `CAP_SYS_ADMIN` |
+| Mount namespace (`CLONE_NEWNS`) | 2.4.19 | `CAP_SYS_ADMIN` |
+| Network namespace (`CLONE_NEWNET`) | 2.6.24 | `CAP_SYS_ADMIN` |
+| cgroup v2 memory limit | 4.5+ | root |
+
+Isolation features are optional — the sandbox falls back to `fork()` without privileges.
+
+### Runtime Privileges
+
+- **Namespaces** — requires `CAP_SYS_ADMIN` or root. Without it, `start_process()` falls back to `fork()` without isolation.
+- **cgroups v2** — requires root and a mounted cgroup v2 filesystem at `/sys/fs/cgroup`. Without it, memory limit enforcement uses polling (`get_process_memory()`), which is softer and less precise.
+- **Docker** — use `--privileged` for full isolation, or `--cap-add=SYS_ADMIN --security-opt seccomp=unconfined` for namespaces only.
+
+### Ubuntu / Debian
+
+```bash
+sudo apt install cmake g++-12
+cmake -S . -B build
+cmake --build build
+# Run with namespace + cgroup isolation:
+sudo ./build/sandbox --app=./build/testapp --time=1s --memory=16m --input=input.txt --output=output.txt
+```
+
+### Docker (privileged)
+
+```bash
+# Build
+docker build --target test -t olymp-sandbox-test .
+# Run with full isolation:
+docker run --privileged olymp-sandbox-test
+# Run with limited capabilities (no cgroups, only namespaces):
+docker run --cap-add=SYS_ADMIN --security-opt seccomp=unconfined olymp-sandbox-test
+```
 
 ## CI
 
@@ -71,3 +110,7 @@ See `.github/workflows/build.yml` for details.
 ## Architecture
 
 See [docs/architecture.md](docs/architecture.md) for a full description of components, data flow, and test strategy.
+
+## Troubleshooting
+
+See [docs/troubleshooting.md](docs/troubleshooting.md) for common issues and solutions.
