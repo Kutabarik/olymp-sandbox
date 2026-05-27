@@ -86,9 +86,35 @@ bool can_run_cgroup_test() {
     return false;
 #else
     std::error_code ec;
-    return geteuid() == 0 &&
-           std::filesystem::exists("/sys/fs/cgroup/cgroup.controllers", ec) &&
-           std::filesystem::exists("/sys/fs/cgroup", ec);
+    if (geteuid() != 0 ||
+        !std::filesystem::exists("/sys/fs/cgroup/cgroup.controllers", ec) ||
+        !std::filesystem::exists("/sys/fs/cgroup", ec)) {
+        return false;
+    }
+
+    // Verify that this environment can create a child cgroup and set memory.max.
+    // Some CI runners expose cgroup v2 but do not delegate writable controllers.
+    const std::string probe_name = "sandbox_probe_" + std::to_string(getpid());
+    const std::filesystem::path probe_path = std::filesystem::path("/sys/fs/cgroup") / probe_name;
+    if (!std::filesystem::create_directory(probe_path, ec) || ec) {
+        return false;
+    }
+
+    bool ok = true;
+    {
+        std::ofstream limit_file(probe_path / "memory.max");
+        if (!limit_file) {
+            ok = false;
+        } else {
+            limit_file << (16ull * 1024ull * 1024ull);
+            if (!limit_file.good()) {
+                ok = false;
+            }
+        }
+    }
+
+    std::filesystem::remove(probe_path, ec);
+    return ok;
 #endif
 }
 
@@ -198,13 +224,13 @@ TEST_CASE("Integration: cgroup memory limit is enforced (root required)", "[inte
 
     {
         std::ofstream in(input_path);
-        in << "200 131072"; // 128 MB
+        in << "3000 131072"; // 128 MB, keep process alive to avoid race with monitor loop
     }
 
     {
         // Set a very tight limit to force the cgroup memory controller to kill the process.
         mc::process_manager manager(
-            make_cfg(input_path, output_path, 16ull * 1024ull * 1024ull, 2000),
+            make_cfg(input_path, output_path, 16ull * 1024ull * 1024ull, 5000),
             log_path);
         const mc::result_info result = manager.start_app();
 
