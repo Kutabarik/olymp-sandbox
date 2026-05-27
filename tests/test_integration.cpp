@@ -85,10 +85,28 @@ bool can_run_cgroup_test() {
 #if defined(WIN32)
     return false;
 #else
+    if (geteuid() != 0) {
+        return false;
+    }
+
     std::error_code ec;
-    return geteuid() == 0 &&
-           std::filesystem::exists("/sys/fs/cgroup/cgroup.controllers", ec) &&
-           std::filesystem::exists("/sys/fs/cgroup", ec);
+    const std::filesystem::path cgroup_root = "/sys/fs/cgroup";
+    const std::filesystem::path controllers = cgroup_root / "cgroup.controllers";
+
+    if (!std::filesystem::exists(cgroup_root, ec) ||
+        !std::filesystem::exists(controllers, ec)) {
+        return false;
+    }
+
+    std::ifstream in(controllers);
+    if (!in) {
+        return false;
+    }
+
+    std::string contents((std::istreambuf_iterator<char>(in)),
+                         std::istreambuf_iterator<char>());
+
+    return contents.find("memory") != std::string::npos;
 #endif
 }
 
@@ -188,7 +206,7 @@ TEST_CASE("Integration: cgroup memory limit is enforced (root required)", "[inte
 #endif
 
     if (!can_run_cgroup_test()) {
-        SKIP("cgroup v2 memory tests require Linux root privileges.");
+        SKIP("cgroup v2 memory controller is not available or not usable in this environment.");
     }
 
     const std::string input_path = "integration_input_13_4.txt";
