@@ -457,12 +457,17 @@ TEST_CASE("Integration: deep namespace isolation behavior (privileged)", "[integ
     REQUIRE(pid > 0);
 
     // Wait for it to complete
+    bool exited = false;
     int status = 0;
     for (int i = 0; i < 100; ++i) {
         pid_t ret = waitpid(pid, &status, WNOHANG);
-        if (ret == pid) break;
+        if (ret == pid) {
+            exited = true;
+            break;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+    REQUIRE(exited);
     REQUIRE(WIFEXITED(status));
     REQUIRE(WEXITSTATUS(status) == 0);
 
