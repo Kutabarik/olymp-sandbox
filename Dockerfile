@@ -8,7 +8,7 @@
 # Stage 1: Build all targets
 FROM debian:bookworm AS builder
 
-RUN apt-get update && apt-get install -y cmake g++ make
+RUN apt-get update && apt-get install -y cmake g++ make git
 
 WORKDIR /source
 COPY . .
