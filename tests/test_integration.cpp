@@ -200,7 +200,7 @@ TEST_CASE("Integration: memory limit is enforced", "[integration][9.4]") {
 
 }
 
-TEST_CASE("Integration: cgroup memory limit is enforced (root required)", "[integration][13.4]") {
+TEST_CASE("Integration: cgroup memory limit is enforced (privileged)", "[integration][13.4][privileged]") {
 #if defined(WIN32)
     SKIP("Integration tests run on Linux.");
 #endif
@@ -326,7 +326,7 @@ bool namespace_differs(const std::string& ns_type, pid_t child_pid) {
 }
 #endif
 
-TEST_CASE("Integration: namespace isolation works (root required)", "[integration][14.4]") {
+TEST_CASE("Integration: namespace isolation works (privileged)", "[integration][14.4][privileged]") {
 #if defined(WIN32)
     SKIP("Namespace isolation tests run on Linux only.");
 #else
@@ -364,6 +364,142 @@ TEST_CASE("Integration: namespace isolation works (root required)", "[integratio
 
     REQUIRE(std::filesystem::exists(output_path));
     REQUIRE(std::filesystem::file_size(output_path) > 0);
+#endif
+}
+
+TEST_CASE("Integration: memory limit enforced under namespace isolation (privileged)", "[integration][16.1][privileged]") {
+#if defined(WIN32)
+    SKIP("Linux privileged test.");
+#else
+    if (!can_run_cgroup_test()) {
+        SKIP("Requires cgroup v2 memory controller with root privileges.");
+    }
+
+    const std::string input_path = "integration_input_16_1.txt";
+    const std::string output_path = "integration_output_16_1.txt";
+    const std::string log_path = "integration_log_16_1.log";
+    const scoped_cleanup cleanup{input_path, output_path, log_path};
+
+    {
+        std::ofstream in(input_path);
+        in << "50 131072"; // 50ms, 128 MB allocation
+    }
+
+    {
+        mc::process_manager manager(
+            make_cfg(input_path, output_path, 16ull * 1024ull * 1024ull, 2000),
+            log_path);
+        const mc::result_info result = manager.start_app();
+        REQUIRE(result.status_code == mc::result_info::STATUS::MEMORY_LIMIT);
+        REQUIRE(result.max_memory_used > 0);
+    }
+#endif
+}
+
+TEST_CASE("Integration: time limit enforced under namespace isolation (privileged)", "[integration][16.2][privileged]") {
+#if defined(WIN32)
+    SKIP("Linux privileged test.");
+#else
+    if (geteuid() != 0) {
+        SKIP("Requires root privileges for namespace isolation.");
+    }
+
+    const std::string input_path = "integration_input_16_2.txt";
+    const std::string output_path = "integration_output_16_2.txt";
+    const std::string log_path = "integration_log_16_2.log";
+    const scoped_cleanup cleanup{input_path, output_path, log_path};
+
+    {
+        std::ofstream in(input_path);
+        in << "2000 1"; // 2000ms runtime, 1 KB allocation
+    }
+
+    {
+        mc::process_manager manager(
+            make_cfg(input_path, output_path, 512ull * 1024ull * 1024ull, 30),
+            log_path);
+        const mc::result_info result = manager.start_app();
+        REQUIRE(result.status_code == mc::result_info::STATUS::TIME_LIMIT);
+        // time_used should be close to the configured limit (30ms)
+        REQUIRE(result.time_used >= 20);
+        REQUIRE(result.time_used < 2000);
+    }
+#endif
+}
+
+TEST_CASE("Integration: deep namespace isolation behavior (privileged)", "[integration][16.3][privileged]") {
+#if defined(WIN32)
+    SKIP("Linux privileged test.");
+#else
+    if (geteuid() != 0) {
+        SKIP("Requires root privileges for namespace isolation.");
+    }
+
+    const std::string input_path = "integration_input_16_3.txt";
+    const std::string output_path = "integration_output_16_3.txt";
+    const scoped_cleanup cleanup{input_path, output_path};
+
+    // Create a dummy input file (check_isolation ignores stdin)
+    {
+        std::ofstream in(input_path);
+        in << "0 0";
+    }
+
+#ifdef CHECK_ISOLATION_PATH
+    std::string helper = CHECK_ISOLATION_PATH;
+#else
+    std::string helper = "check_isolation";
+#endif
+    REQUIRE(std::filesystem::exists(helper));
+
+    // Forward declaration of platform function
+    pid_t pid = start_process(helper, input_path, output_path);
+    REQUIRE(pid > 0);
+
+    // Wait for it to complete
+    bool exited = false;
+    int status = 0;
+    for (int i = 0; i < 100; ++i) {
+        pid_t ret = waitpid(pid, &status, WNOHANG);
+        if (ret == pid) {
+            exited = true;
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    REQUIRE(exited);
+    REQUIRE(WIFEXITED(status));
+    REQUIRE(WEXITSTATUS(status) == 0);
+
+    REQUIRE(std::filesystem::file_size(output_path) > 0);
+    const std::string content = read_file(output_path);
+
+    // Parse key=value output
+    auto get_val = [&](const std::string& key) -> std::string {
+        std::string search = key + "=";
+        auto pos = content.find(search);
+        if (pos == std::string::npos) return "";
+        auto start = pos + search.length();
+        auto end = content.find('\n', start);
+        return content.substr(start, end - start);
+    };
+
+    // Under clone + namespace isolation:
+    //   UID/GID should be 65534 (nobody)
+    //   PID 1 in the namespace should be the helper itself
+    //   Network should have 0 interfaces (CLONE_NEWNET)
+    REQUIRE(get_val("UID") == "65534");
+    REQUIRE(get_val("GID") == "65534");
+
+    // PID 1 comm should be the helper's name (truncated to 15 chars by kernel)
+    std::string pid1_comm = get_val("PID1_COMM");
+    REQUIRE_FALSE(pid1_comm.empty());
+    REQUIRE(pid1_comm != "systemd");
+    REQUIRE(pid1_comm != "init");
+
+    // Number of network interfaces should be 0 in new net namespace
+    std::string net_ifaces = get_val("NET_IFACES");
+    REQUIRE(net_ifaces == "0");
 #endif
 }
 

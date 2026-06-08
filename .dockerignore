@@ -3,4 +3,3 @@ build_ci/
 build_mingw/
 .git/
 *.log
-*.txt

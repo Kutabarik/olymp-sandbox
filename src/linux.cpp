@@ -293,11 +293,34 @@ bool is_up_process(pid_t pid)
 
 bool stop_process(pid_t pid)
 {
-    if (kill(pid, 0) == 0 && kill(pid, SIGTERM) != 0)
+    if (kill(pid, 0) == 0)
     {
+        // Try graceful SIGTERM first
+        kill(pid, SIGTERM);
+
+        // Wait up to 100ms for process to exit on SIGTERM
+        int status = 0;
+        for (int i = 0; i < 10; ++i)
+        {
+            pid_t waited = waitpid(pid, &status, WNOHANG);
+            if (waited == pid)
+                return WIFEXITED(status) ? (WEXITSTATUS(status) == 0) : false;
+            if (waited == -1)
+                return errno == ECHILD;
+            usleep(10000); // 10ms
+        }
+
+        // Force kill (handles PID 1 in namespaces which ignores SIGTERM)
+        kill(pid, SIGKILL);
+        pid_t waited = waitpid(pid, &status, 0);
+        if (waited == -1)
+            return errno == ECHILD;
+        if (WIFEXITED(status))
+            return WEXITSTATUS(status) == 0;
         return false;
     }
 
+    // Process already gone
     int status = 0;
     pid_t waited = waitpid(pid, &status, 0);
     if (waited == -1)

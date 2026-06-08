@@ -93,4 +93,12 @@ target_link_libraries(run_integration_tests PRIVATE Catch2::Catch2WithMain)
 target_compile_options(run_integration_tests PRIVATE -Wall -Wextra -Wpedantic)
 target_compile_definitions(run_integration_tests PRIVATE TESTAPP_PATH="$<TARGET_FILE:testapp>")
 
+# check_isolation — helper for deep namespace behavioral tests (Linux only)
+if(NOT WIN32)
+    add_executable(check_isolation examples/check_isolation/check_isolation.cpp)
+    add_dependencies(run_integration_tests check_isolation)
+    target_compile_definitions(run_integration_tests PRIVATE
+        CHECK_ISOLATION_PATH="$<TARGET_FILE:check_isolation>")
+endif()
+
 catch_discover_tests(run_integration_tests)
